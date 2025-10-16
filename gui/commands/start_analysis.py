@@ -1,0 +1,32 @@
+from gui.commands.command import Command
+from gui.main_model import MainModel
+from gui.main_view import MainView
+from logger import Logger
+
+
+class StartAnalysis(Command):
+    def __init__(self, logger: Logger, model: MainModel, view: MainView):
+        super().__init__(logger, model, view)
+        self.logger = logger
+        self.model = model
+        self.view = view
+        
+    def execute(self):
+        source_branch = self.view.get_selected_source_branch()
+        target_branch = self.view.get_selected_target_branch()
+        if not source_branch or not target_branch:
+            self.logger.error("Please select both source and target branches!")
+            return
+        
+        if source_branch == target_branch:
+            self.logger.error("Source and target branches can't be the same!")
+            return
+
+        if self.model.is_analysis_running():
+            self.logger.warn("Analysis already in progress!")
+            return
+        
+        self.logger.info(f"Starting analysis: comparing {source_branch} against {target_branch}")
+        self.view.set_analysis_running(True)
+        self.view.clear_results()
+        self.model.start_analysis()

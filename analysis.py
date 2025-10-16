@@ -1,0 +1,75 @@
+import glob
+import os.path
+
+from analysis_config import AnalysisConfig
+from analysis_exception import AnalysisException
+from config_parser import ConfigParser
+from file_analyzer import FileAnalyzer
+from git_assistant import GitAssistant
+from logger import Logger
+from models.analysis_arguments import AnalysisArguments
+from models.changed_file import ChangedFile
+from models.file_analysis_result import FileAnalysisResult
+from models.line_analysis_issue import LineAnalysisIssue
+
+
+class Analysis:
+    def __init__(self, logger: Logger, config_parser: ConfigParser, git_assistant: GitAssistant):
+        self.__logger = logger
+        self.__config_parser = config_parser
+        self.__git_assistant = git_assistant
+        self.__analysis_config_name = "analysis_config.json5"
+        
+    def execute(self, analysis_arguments: AnalysisArguments) -> list[FileAnalysisResult]:
+        self.__logger.info("The static code analysis has been started.")
+        analysis_config = self.__get_analysis_config(analysis_arguments)
+        changed_files = self.__load_changed_files(analysis_arguments)
+        return self.__analyze_all_files(analysis_config, changed_files)
+    
+    def __load_changed_files(self, analysis_arguments: AnalysisArguments) -> list[ChangedFile]:
+        self.__logger.info("Loading changed files...")
+        self.__git_assistant.reset_repository_directory(analysis_arguments.repository_directory)
+        return self.__git_assistant.get_changes_of_pull_request(
+            analysis_arguments.source_branch,
+            analysis_arguments.destination_branch,
+            analysis_arguments.changed_lines_only
+        )
+    
+    def __get_analysis_config(self, analysis_arguments: AnalysisArguments) -> AnalysisConfig:
+        self.__logger.info("Loading analysis config...")
+        file_path = self.__find_analysis_config(analysis_arguments.repository_directory)
+        return self.__config_parser.load_analysis_config(file_path)
+    
+    def __find_analysis_config(self, search_directory: str) -> str:
+        matching_file_paths = glob.glob(f"{search_directory}/**/{self.__analysis_config_name}", recursive=True)
+        if len(matching_file_paths) > 1:
+            raise Exception(f"Multiple analysis configs found in '{search_directory}'. Please make sure that there is "
+                            f"only one '{self.__analysis_config_name}' present.")
+        elif len(matching_file_paths) == 1:
+            return matching_file_paths[0]
+        elif os.path.isfile(self.__analysis_config_name):
+            return self.__analysis_config_name
+        else:
+            raise FileNotFoundError(f"File not found: '{self.__analysis_config_name}'. Please put that file in the "
+                                    f"repository to be analyzed or next to the executable of the static code analysis "
+                                    f"tool.")
+    
+    def __analyze_all_files(self, analysis_config: AnalysisConfig, changed_files: list[ChangedFile]) \
+            -> list[FileAnalysisResult]:
+        self.__logger.info("Analyzing changed files...")
+        file_analyzer = FileAnalyzer(analysis_config)
+        results = []
+        for changed_file in changed_files:
+            self.__logger.info(f"Analyzing changed file: {changed_file.file_path}")
+            results.append(self.__perform_analysis_on_file(file_analyzer, changed_file))
+        self.__logger.info("Static code analysis completed.")
+        return results
+    
+    def __perform_analysis_on_file(self, file_analyzer: FileAnalyzer, changed_file: ChangedFile) -> FileAnalysisResult:
+        try:
+            return file_analyzer.analyze_changed_file(changed_file)
+        except AnalysisException as analysis_exception:
+            result = FileAnalysisResult(changed_file.file_path)
+            result.issues.append(LineAnalysisIssue(0, str(analysis_exception)))
+            return result
+        
