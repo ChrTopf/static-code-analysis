@@ -4,11 +4,12 @@ from PyQt5.QtWidgets import (
     QPushButton, QLabel, QCheckBox
 )
 
+from gui.themeable import Themeable
 from gui.view.repository_selection import RepositorySelection
 from gui.view.result_section import ResultSection
 
 
-class MainView(QWidget):
+class MainView(QWidget, Themeable):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Static Code Analysis")
@@ -19,7 +20,7 @@ class MainView(QWidget):
         self.run_button = None
         self.result_section = None
         self.__init_ui()
-        self.__apply_theme()
+        self.__apply_theme_variables()
         
     def get_repository_selection(self) -> RepositorySelection:
         return self.repository_selection
@@ -125,11 +126,14 @@ class MainView(QWidget):
     def __toggle_theme(self):
         """Toggle between light and dark mode"""
         self.is_dark_mode = self.theme_toggle.isChecked()
-        self.__apply_theme()
+        if self.is_dark_mode:
+            self.apply_theme(self.__get_light_theme_variables())
+        else:
+            self.apply_theme(self.__get_dark_theme_variables())
     
-    def __apply_theme(self):
-        self.setStyleSheet(self.__get_default_style())
-    
+    def apply_theme(self, variables: dict[str, str]):
+        self.setStyleSheet(self._replace_theme_variables(variables, self.__get_default_style()))
+        
     def __get_default_style(self):
         """Get dark theme stylesheet"""
         return """
