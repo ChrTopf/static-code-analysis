@@ -16,7 +16,7 @@ class MainController:
         
     def register_commands(self):
         set_repository_command = SetRepositoryCommand(self.logger, self.model, self.view)
-        self.view.get_repository_selection().get_select_repository_button().clicked.connect(
+        self.view.get_repository_section().get_select_repository_button().clicked.connect(
             set_repository_command.execute
         )
         start_analysis_command = StartAnalysis(self.logger, self.model, self.view)

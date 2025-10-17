@@ -3,10 +3,11 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QTableWidget, QHeaderView, \
     QTabWidget, QTableWidgetItem, QApplication
 
+from gui.themeable import Themeable
 from models.file_analysis_result import FileAnalysisResult
 
 
-class ResultSection(QTabWidget):
+class ResultSection(QTabWidget, Themeable):
     def __init__(self):
         super().__init__()
         self.copy_button = None
@@ -16,13 +17,13 @@ class ResultSection(QTabWidget):
         
         self.setObjectName("results_tabs")
 
-        summary_widget = self.__create_summary_tab()
-        issues_widget = self.__create_issues_tab()
-        console_widget = self.__create_console_tab()
+        self.summary_widget = self.__create_summary_tab()
+        self.issues_widget = self.__create_issues_tab()
+        self.console_widget = self.__create_console_tab()
         
-        self.addTab(summary_widget, "Analysis Summary")
-        self.addTab(issues_widget, "Issues Found")
-        self.addTab(console_widget, "Console Output")
+        self.addTab(self.summary_widget, "Analysis Summary")
+        self.addTab(self.issues_widget, "Issues Found")
+        self.addTab(self.console_widget, "Console Output")
         
     def __create_summary_tab(self) -> QWidget:
         summary_widget = QWidget()
@@ -182,3 +183,14 @@ class ResultSection(QTabWidget):
             self.run_button.setText("Analysis Running...")
         else:
             self.run_button.setText("Run Static Code Analysis")
+
+    def apply_theme(self, theme_variables: dict[str, str]) -> None:
+        self.summary_widget.setStyleSheet(self._replace_theme_variables(
+            theme_variables, self.__get_summary_tab_style()
+        ))
+        self.issues_widget.setStyleSheet(self._replace_theme_variables(
+            theme_variables, self.__get_issues_tab_style()
+        ))
+        self.console_widget.setStyleSheet(self._replace_theme_variables(
+            theme_variables, self.__get_console_tab_style()
+        ))

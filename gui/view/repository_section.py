@@ -1,10 +1,11 @@
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QComboBox
 
+from gui.themeable import Themeable
 from models.repository_info import RepositoryInfo
 
 
-class RepositorySelection(QFrame):
+class RepositorySection(QFrame, Themeable):
     def __init__(self):
         super().__init__()
         self.dir_button = None
@@ -20,11 +21,11 @@ class RepositorySelection(QFrame):
         repo_header.setFont(QFont("Arial", 12, QFont.Bold))
         repo_layout.addWidget(repo_header)
 
-        repository_selection = self.__create_repository_selection()
-        repo_layout.addLayout(repository_selection)
+        self.repository_selection = self.__create_repository_selection()
+        repo_layout.addLayout(self.repository_selection)
 
-        branch_selection = self.__create_branch_selection()
-        repo_layout.addLayout(branch_selection)
+        self.branch_selection = self.__create_branch_selection()
+        repo_layout.addLayout(self.branch_selection)
 
         self.setLayout(repo_layout)
         
@@ -42,7 +43,7 @@ class RepositorySelection(QFrame):
                 margin-bottom: 2px;
                 background-color: transparent;
             }
-        """
+        """ + "\n" + self.__get_repository_selection_style() + "\n" + self.__get_branch_selection_style()
     
     def __create_branch_selection(self) -> QHBoxLayout:
         # Branch selection section
@@ -181,3 +182,6 @@ class RepositorySelection(QFrame):
                     index = repo_info.remote_branches.index(branch)
                     self.dest_branch.setCurrentIndex(index)
                     break
+
+    def apply_theme(self, theme_variables: dict[str, str]) -> None:
+        self.setStyleSheet(self._replace_theme_variables(theme_variables, self.__get_style()))
