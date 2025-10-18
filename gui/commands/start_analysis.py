@@ -7,9 +7,6 @@ from logger import Logger
 class StartAnalysis(Command):
     def __init__(self, logger: Logger, model: MainModel, view: MainView):
         super().__init__(logger, model, view)
-        self.logger = logger
-        self.model = model
-        self.view = view
         
     def execute(self):
         source_branch = self.view.get_repository_section().get_selected_source_branch()

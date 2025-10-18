@@ -79,27 +79,27 @@ class ConfigParser:
             repository_directory = self.__load_property_from_json_object(
                 json_root, 
                 "repository_directory", 
-                type(str))
+                str)
             source_branch = self.__load_property_from_json_object(
                 json_root,
                 "source_branch",
-                type(str)
+                str
             )
             destination_branch = self.__load_property_from_json_object(
                 json_root,
                 "destination_branch",
-                type(str)
+                str
             )
             changed_lines_only = self.__load_property_from_json_object(
                 json_root,
                 "changed_lines_only",
-                type(bool)
+                bool
             )
             return AnalysisArguments(repository_directory, source_branch, destination_branch, changed_lines_only)
     
     def store_analysis_arguments(self, analysis_arguments: AnalysisArguments):
         with open(self.analysis_arguments_file_path, 'w', encoding='utf-8') as file:
-            file.write(json.dumps(analysis_arguments))
+            file.write(json.dumps(analysis_arguments.__dict__))
     
     #endregion analysis_arguments
     

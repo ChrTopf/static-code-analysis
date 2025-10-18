@@ -142,12 +142,24 @@ class RepositorySection(QFrame, Themeable):
                 border-radius: 4px;
             }
         """
+    
+    def get_source_branch_selection(self) -> QComboBox:
+        return self.source_branch
+    
+    def get_target_branch_selection(self) -> QComboBox:
+        return self.dest_branch
 
     def get_selected_source_branch(self):
         return self.source_branch.currentText()
 
     def get_selected_target_branch(self):
         return self.dest_branch.currentText()
+    
+    def select_source_branch(self, source_branch: str):
+        self.source_branch.setCurrentText(source_branch)
+        
+    def select_target_branch(self, target_branch: str):
+        self.dest_branch.setCurrentText(target_branch)
 
     def get_select_repository_button(self) -> QPushButton:
         return self.dir_button
