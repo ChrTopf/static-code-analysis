@@ -48,13 +48,13 @@ class MainModel:
     
     def get_initial_source_branch(self) -> str | None:
         if self.analysis_arguments is not None:
-            if self.analysis_arguments.source_branch in self.repository_info.local_branches:
+            if self.analysis_arguments.source_branch in self.repository_info.branches:
                 return self.analysis_arguments.source_branch
         return None
     
     def get_initial_target_branch(self) -> str | None:
         if self.analysis_arguments is not None:
-            if self.analysis_arguments.destination_branch in self.repository_info.local_branches:
+            if self.analysis_arguments.destination_branch in self.repository_info.branches:
                 return self.analysis_arguments.destination_branch
         return None
     
@@ -62,7 +62,7 @@ class MainModel:
         self.analysis_arguments.source_branch = source_branch
     
     def set_target_branch(self, target_branch: str):
-        self.analysis_arguments.target_branch = target_branch
+        self.analysis_arguments.destination_branch = target_branch
     
     def save_analysis_arguments(self):
         self.config_parser.store_analysis_arguments(self.analysis_arguments)
@@ -106,6 +106,5 @@ class MainModel:
         branches = [b.strip() for b in self.git_assistant.get_local_branches() if b.strip()]
         self.repository_info = RepositoryInfo(
             path=repository_path,
-            local_branches=branches,
-            remote_branches=branches
+            branches=branches
         )

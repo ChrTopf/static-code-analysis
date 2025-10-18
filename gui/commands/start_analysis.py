@@ -15,6 +15,14 @@ class StartAnalysis(Command):
             self.logger.error("Please select both source and target branches!")
             return
         
+        if len(source_branch) == 0:
+            self.logger.error("Please select a source branch!")
+            return
+        
+        if len(target_branch) == 0:
+            self.logger.error("Please select a target branch!")
+            return
+        
         if source_branch == target_branch:
             self.logger.error("Source and target branches can't be the same!")
             return

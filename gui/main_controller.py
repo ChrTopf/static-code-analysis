@@ -1,5 +1,7 @@
 from gui.adapter.analysis_complete import AnalysisCompleteAdapter
 from gui.commands.set_repository import SetRepositoryCommand
+from gui.commands.set_source_branch import SetSourceBranch
+from gui.commands.set_target_branch import SetTargetBranch
 from gui.commands.start_analysis import StartAnalysis
 from gui.main_model import MainModel
 from gui.main_view import MainView
@@ -12,15 +14,28 @@ class MainController:
         self.view = view
         self.set_repository_command = None
         self.start_analysis_command = None
+        self.set_source_branch_command = None
+        self.set_target_branch_command = None
         
     def register_commands(self):
         self.set_repository_command = SetRepositoryCommand(self.logger, self.model, self.view)
         self.view.get_repository_section().get_select_repository_button().clicked.connect(
             self.set_repository_command.execute
         )
+        
         self.start_analysis_command = StartAnalysis(self.logger, self.model, self.view)
         self.view.get_run_analysis_button().clicked.connect(self.start_analysis_command.execute)
         self.logger.debug("All commands have been registered")
+        
+        self.set_source_branch_command = SetSourceBranch(self.logger, self.model, self.view)
+        self.view.get_repository_section().get_source_branch_selection().currentTextChanged.connect(
+            self.set_source_branch_command.execute
+        )
+        
+        self.set_target_branch_command = SetTargetBranch(self.logger, self.model, self.view)
+        self.view.get_repository_section().get_target_branch_selection().currentTextChanged.connect(
+            self.set_target_branch_command.execute
+        )
         
     def register_subscriptions(self):
         analysis_complete_adapter = AnalysisCompleteAdapter(self.view)
@@ -30,7 +45,8 @@ class MainController:
     def initialize_application(self):
         try:
             self.model.prepare()
-            self.view.get_repository_section().update_repository_info(self.model.get_repository_info())
+            repository_info = self.model.get_repository_info()
+            self.view.get_repository_section().update_repository_info(repository_info)
             self.view.get_repository_section().select_source_branch(self.model.get_initial_source_branch())
             self.view.get_repository_section().select_target_branch(self.model.get_initial_target_branch())
         except Exception as e:

@@ -22,9 +22,18 @@ class Analysis:
         
     def execute(self, analysis_arguments: AnalysisArguments) -> list[FileAnalysisResult]:
         self.__logger.info("The static code analysis has been started.")
+        self.__verify_arguments(analysis_arguments)
         analysis_config = self.__get_analysis_config(analysis_arguments)
         changed_files = self.__load_changed_files(analysis_arguments)
         return self.__analyze_all_files(analysis_config, changed_files)
+    
+    def __verify_arguments(self, analysis_arguments: AnalysisArguments):
+        if analysis_arguments.repository_directory is None or len(analysis_arguments.repository_directory) == 0:
+            raise ValueError("The repository directory cannot be empty.")
+        if analysis_arguments.source_branch is None or len(analysis_arguments.source_branch) == 0:
+            raise ValueError("The source branch is cannot be empty.")
+        if analysis_arguments.destination_branch is None or len(analysis_arguments.destination_branch) == 0:
+            raise ValueError("The destination branch is cannot be empty.")
     
     def __load_changed_files(self, analysis_arguments: AnalysisArguments) -> list[ChangedFile]:
         self.__logger.info("Loading changed files...")

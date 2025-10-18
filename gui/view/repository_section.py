@@ -47,35 +47,31 @@ class RepositorySection(QFrame, Themeable):
     
     def __create_branch_selection(self) -> QHBoxLayout:
         # Branch selection section
-        branches_grid = QHBoxLayout()
+        branches_vbox = QVBoxLayout()
 
         # Source branch
-        source_col = QVBoxLayout()
         source_label = QLabel("Source Branch")
         source_label.setFont(QFont("Arial", 8))
         source_label.setObjectName("branch_label")
-        source_col.addWidget(source_label)
+        branches_vbox.addWidget(source_label)
         self.source_branch = QComboBox()
         self.source_branch.setObjectName("modern_combo")
         self.source_branch.setFont(QFont("Arial", 10))
         self.source_branch.addItems(["main", "develop", "feature-xyz"])
-        source_col.addWidget(self.source_branch)
+        branches_vbox.addWidget(self.source_branch)
 
         # Destination branch
-        dest_col = QVBoxLayout()
-        dest_label = QLabel("Destination Branch")
+        dest_label = QLabel("Target Branch")
         dest_label.setFont(QFont("Arial", 8))
         dest_label.setObjectName("branch_label")
-        dest_col.addWidget(dest_label)
+        branches_vbox.addWidget(dest_label)
         self.dest_branch = QComboBox()
         self.dest_branch.setObjectName("modern_combo")
         self.dest_branch.setFont(QFont("Arial", 10))
         self.dest_branch.addItems(["main", "develop", "feature-xyz"])
-        dest_col.addWidget(self.dest_branch)
-
-        branches_grid.addLayout(source_col)
-        branches_grid.addLayout(dest_col)
-        return branches_grid
+        branches_vbox.addWidget(self.dest_branch)
+        
+        return branches_vbox
     
     def __get_branch_selection_style(self) -> str:
         return """
@@ -173,27 +169,22 @@ class RepositorySection(QFrame, Themeable):
 
         # Update branch dropdowns
         self.source_branch.clear()
-        self.source_branch.addItems(repo_info.local_branches)
+        self.source_branch.addItems(repo_info.branches)
         self.dest_branch.clear()
-        self.dest_branch.addItems(repo_info.remote_branches)
-
-        # Auto-select main/master branch as default destination if available
+        self.dest_branch.addItems(repo_info.branches)
+    
+    def select_master_as_target_branch(self, repo_info: RepositoryInfo):
         main_branches = ['main', 'master']
         for branch in main_branches:
-            # Check remote branches first (with origin/ prefix)
+            # search for local master
+            if branch in repo_info.branches:
+                self.dest_branch.setCurrentText(branch)
+                return
+            # search for master in origin
             remote_main = f'origin/{branch}'
-            if remote_main in repo_info.remote_branches:
-                index = repo_info.remote_branches.index(remote_main)
-                self.dest_branch.setCurrentIndex(index)
-                break
-            # Check local branches
-            elif branch in repo_info.local_branches:
-                # If found in local but not remote, still select it in dest_branch
-                # But first check if the branch exists in remote list
-                if branch in repo_info.remote_branches:
-                    index = repo_info.remote_branches.index(branch)
-                    self.dest_branch.setCurrentIndex(index)
-                    break
+            if remote_main in repo_info.branches:
+                self.dest_branch.setCurrentText(branch)
+                return
 
     def apply_theme(self, theme_variables: dict[str, str]) -> None:
         self.setStyleSheet(self._replace_theme_variables(theme_variables, self.__get_style()))

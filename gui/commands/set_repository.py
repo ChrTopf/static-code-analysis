@@ -18,5 +18,6 @@ class SetRepositoryCommand(Command):
             self.view.get_repository_section().update_repository_path(directory)
             repository_info = self.model.get_repository_info()
             self.view.get_repository_section().update_repository_info(repository_info)
+            self.view.get_repository_section().select_master_as_target_branch(repository_info)
         else:
             self.logger.warn("No repository has been selected.")
