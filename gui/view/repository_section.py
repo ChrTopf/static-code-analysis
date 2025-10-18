@@ -106,7 +106,7 @@ class RepositorySection(QFrame, Themeable):
     
     def __create_repository_selection(self) -> QHBoxLayout:
         dir_layout = QHBoxLayout()
-        self.dir_button = QPushButton("📁 Select Repository")
+        self.dir_button = QPushButton("Select Repository")
         self.dir_button.setObjectName("primary_button")
         self.dir_label = QLabel("No repository selected")
         self.dir_label.setObjectName("path_label")
@@ -118,8 +118,8 @@ class RepositorySection(QFrame, Themeable):
     def __get_repository_selection_style(self) -> str:
         return """
             #primary_button {
-                background-color: #4fc3f7;
-                color: #000000;
+                background-color: $primary;
+                color: $light;
                 border: none;
                 padding: 6px 12px;
                 border-radius: 6px;
@@ -127,11 +127,11 @@ class RepositorySection(QFrame, Themeable):
             }
             
             #primary_button:hover {
-                background-color: #29b6f6;
+                background-color: $secondary;
             }
             
             #primary_button:pressed {
-                background-color: #0288d1;
+                background-color: $primary;
             }
             
             #path_label {
@@ -144,12 +144,12 @@ class RepositorySection(QFrame, Themeable):
         """
 
     def get_selected_source_branch(self):
-        return self.self.source_branch.currentText()
+        return self.source_branch.currentText()
 
     def get_selected_target_branch(self):
-        return self.self.dest_branch.currentText()
+        return self.dest_branch.currentText()
 
-    def get_select_repository_button(self):
+    def get_select_repository_button(self) -> QPushButton:
         return self.dir_button
 
     def update_repository_path(self, repository_path):

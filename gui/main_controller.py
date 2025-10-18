@@ -10,19 +10,22 @@ class MainController:
         self.model = model
         self.logger = logger
         self.view = view
+        self.set_repository_command = None
+        self.start_analysis_command = None
         
     def initialize_application(self):
         self.logger.info("Static Code Analysis Tool started")
         
     def register_commands(self):
-        set_repository_command = SetRepositoryCommand(self.logger, self.model, self.view)
+        self.set_repository_command = SetRepositoryCommand(self.logger, self.model, self.view)
         self.view.get_repository_section().get_select_repository_button().clicked.connect(
-            set_repository_command.execute
+            self.set_repository_command.execute
         )
-        start_analysis_command = StartAnalysis(self.logger, self.model, self.view)
-        self.view.get_run_analysis_button().clicked.connect(start_analysis_command.execute)
+        self.start_analysis_command = StartAnalysis(self.logger, self.model, self.view)
+        self.view.get_run_analysis_button().clicked.connect(self.start_analysis_command.execute)
+        self.logger.debug("All commands have been registered")
         
     def register_subscriptions(self):
         analysis_complete_adapter = AnalysisCompleteAdapter(self.view)
         self.model.subscribe_analysis_complete(analysis_complete_adapter)
-        pass
+        self.logger.debug("All subscriptions have been registered")

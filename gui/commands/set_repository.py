@@ -11,11 +11,12 @@ class SetRepositoryCommand(Command):
         super().__init__(logger, model, view)
         
     def execute(self):
-        # TODO: get current repository path from the model
-        # TODO: set default path for file open dialog
-        directory = QFileDialog.getExistingDirectory(self.view, "Select Directory")
+        directory = self.model.get_repository_directory()
+        directory = QFileDialog.getExistingDirectory(self.view, "Select Directory", directory)
         if directory:
             self.model.set_repository(directory)
-            self.view.update_repository_path(directory)
+            self.view.get_repository_section().update_repository_path(directory)
             repository_info = self.model.get_repository_info()
-            self.view.update_repository_info(repository_info)
+            self.view.get_repository_section().update_repository_info(repository_info)
+        else:
+            self.logger.warn("No repository has been selected.")

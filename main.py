@@ -23,7 +23,7 @@ class StaticCodeAnalysisApp:
         self.app = QApplication(sys.argv)
         # Create MVC components
         self.view = MainView()
-        self.model = MainModel(self.logger, self.analysis_arguments, self.git_assistant, self.analysis)
+        self.model = MainModel(self.logger, self.config_parser, self.git_assistant, self.analysis)
         self.controller = MainController(self.model, self.view, self.logger)
         self.controller.initialize_application()
         self.controller.register_commands()

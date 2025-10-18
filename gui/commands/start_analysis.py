@@ -12,8 +12,8 @@ class StartAnalysis(Command):
         self.view = view
         
     def execute(self):
-        source_branch = self.view.get_selected_source_branch()
-        target_branch = self.view.get_selected_target_branch()
+        source_branch = self.view.get_repository_section().get_selected_source_branch()
+        target_branch = self.view.get_repository_section().get_selected_target_branch()
         if not source_branch or not target_branch:
             self.logger.error("Please select both source and target branches!")
             return
@@ -27,6 +27,7 @@ class StartAnalysis(Command):
             return
         
         self.logger.info(f"Starting analysis: comparing {source_branch} against {target_branch}")
+        self.model.save_analysis_arguments()
         self.view.set_analysis_running(True)
-        self.view.clear_results()
+        self.view.get_result_section().clear_results()
         self.model.start_analysis()

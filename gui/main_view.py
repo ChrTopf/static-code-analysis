@@ -31,6 +31,14 @@ class MainView(QWidget, Themeable):
     def get_result_section(self) -> ResultSection:
         return self.result_section
 
+    def set_analysis_running(self, is_running: bool):
+        """Update UI to reflect analysis state"""
+        self.run_button.setEnabled(not is_running)
+        if is_running:
+            self.run_button.setText("Analysis Running...")
+        else:
+            self.run_button.setText("Run Static Code Analysis")
+
     def __init_ui(self):
         main_layout = QVBoxLayout()
         main_layout.setSpacing(4)
@@ -54,16 +62,12 @@ class MainView(QWidget, Themeable):
     def __create_title_layout(self) -> QHBoxLayout:
         # Title and theme toggle
         title_layout = QHBoxLayout()
-        title_label = QLabel("Static Code Analysis Tool")
-        title_label.setObjectName("title")
-        title_label.setFont(QFont("Arial", 14, QFont.Bold))
 
         # Theme toggle
         self.theme_toggle = QCheckBox("Dark Mode")
         self.theme_toggle.setChecked(self.is_dark_mode)
         self.theme_toggle.stateChanged.connect(self.__toggle_theme)
-
-        title_layout.addWidget(title_label)
+        
         title_layout.addStretch()
         title_layout.addWidget(self.theme_toggle)
         return title_layout
@@ -162,7 +166,6 @@ class MainView(QWidget, Themeable):
             }
             
             QCheckBox::indicator:checked:before {
-                content: "✓";
                 color: $dark;
                 font-weight: bold;
             }

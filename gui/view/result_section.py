@@ -176,14 +176,6 @@ class ResultSection(QTabWidget, Themeable):
         self.problem_table.setRowCount(0)
         self.upper_output.clear()
 
-    def set_analysis_running(self, is_running: bool):
-        """Update UI to reflect analysis state"""
-        self.run_button.setEnabled(not is_running)
-        if is_running:
-            self.run_button.setText("Analysis Running...")
-        else:
-            self.run_button.setText("Run Static Code Analysis")
-
     def apply_theme(self, theme_variables: dict[str, str]) -> None:
         self.summary_widget.setStyleSheet(self._replace_theme_variables(
             theme_variables, self.__get_summary_tab_style()

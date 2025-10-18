@@ -36,5 +36,5 @@ class RegionNewline(Check):
                                                                f"missing an empty line after the region."))
     
     def __is_line_empty(self, line: str):
-        return len(line.strip()) is 0
+        return len(line.strip()) == 0
         

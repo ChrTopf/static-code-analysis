@@ -1,10 +1,11 @@
-from typing import List, Optional
+from threading import Thread
+from typing import List
 
 from analysis import Analysis
+from config_parser import ConfigParser
 from git_assistant import GitAssistant
 from gui.adapter.analysis_complete import AnalysisCompleteAdapter
 from logger import Logger
-from models.analysis_arguments import AnalysisArguments
 from models.file_analysis_result import FileAnalysisResult
 from models.repository_info import RepositoryInfo
 
@@ -12,22 +13,26 @@ from models.repository_info import RepositoryInfo
 class MainModel:
     def __init__(self, 
                  logger: Logger, 
-                 analysis_arguments: AnalysisArguments, 
+                 config_parser: ConfigParser, 
                  git_assistant: GitAssistant, 
                  analysis: Analysis):
         self.logger = logger
-        self.analysis_arguments = analysis_arguments
+        self.config_parser = config_parser
+        self.analysis_arguments = config_parser.load_analysis_arguments()
         self.git_assistant = git_assistant
         self.analysis = analysis
-        self.repo_directory: Optional[str] = None
-        self.repository_info: Optional[RepositoryInfo] = None
+        self.repository_info: RepositoryInfo = None
         self.analysis_results: list[FileAnalysisResult] | None = None
         self.is_analyzing = False
         self.analysis_complete_adapter: AnalysisCompleteAdapter | None = None
+        self.analysis_thread = None
+        
+    def get_repository_directory(self) -> str:
+        return self.analysis_arguments.repository_directory
         
     def set_repository(self, repo_path: str) -> bool:
         try:
-            self.repo_directory = repo_path
+            self.analysis_arguments.repository_directory = repo_path
             self.git_assistant.reset_repository_directory(repo_path)
             # Get branch information
             branches = [b.strip() for b in self.git_assistant.get_local_branches() if b.strip()]
@@ -38,12 +43,15 @@ class MainModel:
             )
             return True
         except Exception as e:
-            self.repo_directory = None
+            self.analysis_arguments.repository_directory = ""
             self.repository_info = None
             raise Exception(f"Failed to initialize repository: {str(e)}")
     
-    def get_repository_info(self) -> Optional[RepositoryInfo]:
+    def get_repository_info(self) -> RepositoryInfo:
         return self.repository_info
+    
+    def save_analysis_arguments(self):
+        self.config_parser.store_analysis_arguments(self.analysis_arguments)
     
     def start_analysis(self):
         if self.is_analyzing:
@@ -52,7 +60,11 @@ class MainModel:
         
         self.is_analyzing = True
         self.analysis_results = None
-        
+
+        self.analysis_thread = Thread(target=self.__analyze_async)
+        self.analysis_thread.start()
+            
+    def __analyze_async(self):
         try:
             self.analysis_results = self.analysis.execute(self.analysis_arguments)
             self.logger.info("Analysis completed.")
