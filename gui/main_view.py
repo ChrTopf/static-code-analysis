@@ -1,7 +1,7 @@
-from PyQt5.QtGui import QTextCursor, QFont
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLabel, QCheckBox
+    QPushButton, QCheckBox
 )
 
 from gui.themeable import Themeable
@@ -113,19 +113,7 @@ class MainView(QWidget, Themeable):
         """
 
     def log(self, message, level="INFO"):
-        color_map = {
-            "INFO": "green",
-            "WARNING": "orange",
-            "ERROR": "red",
-            "DEBUG": "purple"
-        }
-
-        color = color_map.get(level.upper(), "black")
-        formatted_message = f'<span style="color:{color};"><b>[{level.upper()}]</b> {message}</span>'
-
-        self.console.moveCursor(QTextCursor.End)
-        self.console.insertHtml(formatted_message + "<br>")
-        self.console.moveCursor(QTextCursor.End)
+        self.result_section.log(message, level)
     
     def __toggle_theme(self):
         """Toggle between light and dark mode"""

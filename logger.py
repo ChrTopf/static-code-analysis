@@ -1,3 +1,5 @@
+import traceback
+
 from gui.main_view import MainView
 
 
@@ -26,7 +28,12 @@ class Logger:
         if self.__has_gui():
             self.view.log(message, "WARNING")
 
-    def error(self, message : str):
-        print(f"\033[31m[FATA]: {message}\033[0m")
-        if self.__has_gui():
-            self.view.log(message, "ERROR")
+    def error(self, message : str | Exception):
+        if isinstance(message, Exception):
+            print(f"\033[31m[FATA]: {traceback.format_exc()}\033[0m")
+            if self.__has_gui():
+                self.view.log(message, "ERROR")
+        else:
+            print(f"\033[31m[FATA]: {message}\033[0m")
+            if self.__has_gui():
+                self.view.log(message, "ERROR")

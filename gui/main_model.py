@@ -1,4 +1,3 @@
-import traceback
 from threading import Thread
 from typing import List
 
@@ -85,7 +84,13 @@ class MainModel:
             self.analysis_results = self.analysis.execute(self.analysis_arguments)
             self.logger.info("Analysis completed.")
         except Exception as e:
-            self.logger.error(f"Analysis failed. Reason:\n{traceback.format_exc()}")
+            if str(e).__contains__("could not read Username"):
+                self.logger.error("Could not authenticate at remote server for fetching the latest changes. If your "
+                                  "repository is on github, please try setting up ssh keys! You can test your "
+                                  "configuration by executing 'git fetch -v -- origin'. If you are not prompted for "
+                                  "a password anymore, this error should disappear.")
+            else:
+                self.logger.error(e)
         finally:
             self.__notify_analysis_complete(self.analysis_results)
             self.is_analyzing = False

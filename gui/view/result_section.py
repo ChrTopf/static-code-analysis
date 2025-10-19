@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QTextCursor
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QTableWidget, QHeaderView, \
     QTabWidget, QTableWidgetItem, QApplication
 
@@ -165,6 +165,21 @@ class ResultSection(QTabWidget, Themeable):
         self.console_widget.setStyleSheet(self._replace_theme_variables(
             theme_variables, self.__get_console_tab_style()
         ))
+        
+    def log(self, message: str, level: str = "INFO"):
+        color_map = {
+            "INFO": "green",
+            "WARNING": "orange",
+            "ERROR": "red",
+            "DEBUG": "purple"
+        }
+
+        color = color_map.get(level.upper(), "black")
+        formatted_message = f'<span style="color:{color};"><b>[{level.upper()}]</b> {message}</span>'
+
+        self.console.moveCursor(QTextCursor.End)
+        self.console.insertHtml(formatted_message + "<br>")
+        self.console.moveCursor(QTextCursor.End)
 
     def show_analysis_results(self, analysis_results: list[FileAnalysisResult]):
         self.clear_analysis_results()
