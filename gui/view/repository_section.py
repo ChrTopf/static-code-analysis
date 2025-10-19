@@ -32,14 +32,14 @@ class RepositorySection(QFrame, Themeable):
     def __get_style(self) -> str:
         return """
             #section_frame {
-                background-color: #3c3c3c;
-                border: 1px solid #555555;
+                background-color: $body-bg;
+                border: 1px solid $body-bg-light;
                 border-radius: 5px;
                 margin: 3px 0;
             }
             
             #section_header {
-                color: #ffffff;
+                color: $dark;
                 margin-bottom: 2px;
                 background-color: transparent;
             }
@@ -76,27 +76,27 @@ class RepositorySection(QFrame, Themeable):
     def __get_branch_selection_style(self) -> str:
         return """
             #branch_label {
-                color: #ffffff;
+                color: $dark;
                 background-color: transparent;
             }
         
             #modern_combo {
-                background-color: #404040;
-                border: 2px solid #666666;
+                background-color: $body-bg;
+                border: 2px solid $body-bg-light;
                 border-radius: 4px;
                 padding: 4px;
-                color: #ffffff;
+                color: $dark;
             }
             
             #modern_combo:focus {
-                border-color: #4fc3f7;
+                border-color: $body-bg-light;
             }
             
             #modern_combo QAbstractItemView {
-                background-color: #404040;
-                color: #ffffff;
-                selection-background-color: #4fc3f7;
-                selection-color: #000000;
+                background-color: $body-bg-light;
+                color: $dark;
+                selection-background-color: $secondary;
+                selection-color: $dark;
             }
         """
     
@@ -115,7 +115,7 @@ class RepositorySection(QFrame, Themeable):
         return """
             #primary_button {
                 background-color: $primary;
-                color: $light;
+                color: $dark;
                 border: none;
                 padding: 6px 12px;
                 border-radius: 6px;
@@ -131,10 +131,10 @@ class RepositorySection(QFrame, Themeable):
             }
             
             #path_label {
-                color: #bbbbbb;
+                color: $dark;
                 font-style: italic;
                 padding: 3px 6px;
-                background-color: #404040;
+                background-color: $body-bg;
                 border-radius: 4px;
             }
         """

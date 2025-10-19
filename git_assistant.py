@@ -20,6 +20,9 @@ class GitAssistant:
         if self.repo is None:
             return []
         return [head.name for head in self.repo.heads]
+    
+    def get_repository_directory(self) -> str:
+        return self.repo.working_dir
 
     def get_changes_of_pull_request(self, source_branch: str, target_branch: str, changed_lines_only: bool) \
             -> list[ChangedFile]:

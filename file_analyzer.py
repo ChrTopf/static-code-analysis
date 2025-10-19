@@ -9,24 +9,23 @@ from models.loaded_file import LoadedFile
 
 
 class FileAnalyzer:
-    def __init__(self, analysis_config: AnalysisConfig):
+    def __init__(self, analysis_config: AnalysisConfig, repository_directory: str) -> None:
         self.analysis_config = analysis_config
         self.check_factory: CheckFactory = CheckFactory(analysis_config)
+        self.repository_directory = repository_directory
     
     def analyze_changed_file(self, changed_file: ChangedFile) -> FileAnalysisResult:
         self.__check_file_exclusion(changed_file)
         if self.__is_file_ignored(changed_file):
-            return FileAnalysisResult(changed_file.file_path)
+            return FileAnalysisResult(changed_file.get_relative_path(self.repository_directory))
         file_encoding = self.__get_encoding_for_file(changed_file)
         loaded_file = self.__try_load_changed_file(changed_file, file_encoding)
-        checks = self.__load_checks_for_file(loaded_file)
-        return self.__perform_checks_on_loaded_file(loaded_file, checks)
+        return self.__analyze_loaded_file(loaded_file)
     
     def __check_file_exclusion(self, changed_file: ChangedFile):
         if self.__is_file_forbidden_in_diff(changed_file):
-            raise AnalysisException(f"The file '{changed_file.file_path}' does not belong into a git repository! "
-                                    f"Please add it to the .gitignore or upload it to a proper file sharing service "
-                                    f"instead!")
+            raise AnalysisException(f"The file does not belong into a git repository! Please add it to the .gitignore "
+                                    f"or upload it to a proper file sharing service instead!")
     
     def __is_file_forbidden_in_diff(self, changed_file: ChangedFile) -> bool:
         for file_pattern in self.analysis_config.forbidden_files:
@@ -50,8 +49,8 @@ class FileAnalyzer:
         try:
             return self.__load_changed_file(changed_file, file_encoding)
         except UnicodeDecodeError:
-            raise AnalysisException(f"The file '{changed_file.file_path}' is not saved with the correct encoding. "
-                                    f"The expected encoding is '{file_encoding}'.")
+            raise AnalysisException(f"The file is not saved with the correct encoding. The expected encoding is "
+                                    f"'{file_encoding}'.")
     
     def __load_changed_file(self, changed_file: ChangedFile, file_encoding: str) -> LoadedFile:
         all_lines = self.__read_changed_file(changed_file.file_path, file_encoding)
@@ -70,7 +69,7 @@ class FileAnalyzer:
         return self.__perform_checks_on_loaded_file(loaded_file, checks)
 
     def __perform_checks_on_loaded_file(self, loaded_file: LoadedFile, checks: list[Check]) -> FileAnalysisResult:
-        result = FileAnalysisResult(loaded_file.file_path)
+        result = FileAnalysisResult(loaded_file.get_relative_path(self.repository_directory))
         for check in checks:
             check.execute_on_changed_file(loaded_file, result)
         return result

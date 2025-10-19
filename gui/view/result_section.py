@@ -50,23 +50,23 @@ class ResultSection(QTabWidget, Themeable):
     def __get_summary_tab_style(self) -> str:
         return """
             #secondary_button {
-                background-color: #666666;
-                color: #ffffff;
+                background-color: $secondary;
+                color: $dark;
                 border: none;
                 padding: 4px 8px;
                 border-radius: 4px;
             }
             
             #secondary_button:hover {
-                background-color: #777777;
+                background-color: $primary;
             }
             
             #info_output {
-                background-color: #404040;
-                border: 1px solid #666666;
+                background-color: $body-bg;
+                border: 1px solid $body-bg-light;
                 border-radius: 4px;
                 padding: 4px;
-                color: #ffffff;
+                color: $dark;
             }
         """
     
@@ -103,26 +103,26 @@ class ResultSection(QTabWidget, Themeable):
     def __get_issues_tab_style(self) -> str:
         return """
             #modern_table {
-                background-color: #3c3c3c;
-                alternate-background-color: #444444;
-                color: #ffffff;
-                gridline-color: #555555;
-                border: 1px solid #555555;
+                background-color: $body-bg;
+                alternate-background-color: $body-bg-light;
+                color: $dark;
+                gridline-color: $body-bg-dark;
+                border: 1px solid $body-bg-dark;
                 border-radius: 4px;
                 margin: 2px 0;
             }
             
             #modern_table QHeaderView::section {
-                background-color: #4fc3f7;
-                color: #000000;
+                background-color: $body-bg-light;
+                color: $dark;
                 padding: 4px;
                 border: none;
                 font-weight: bold;
             }
             
             #modern_table::item:selected {
-                background-color: #4fc3f7;
-                color: #000000;
+                background-color: $secondary;
+                color: $dark;
             }
         """
     
@@ -142,11 +142,11 @@ class ResultSection(QTabWidget, Themeable):
     def __get_console_tab_style(self) -> str:
         return """
             #console_output {
-                background-color: #1e1e1e;
-                border: 1px solid #666666;
+                background-color: $body-bg;
+                border: 1px solid $body-bg-light;
                 border-radius: 4px;
                 padding: 4px;
-                color: #ffffff;
+                color: $dark;
                 font-family: 'Consolas', monospace;
             }
         """
@@ -211,9 +211,10 @@ class ResultSection(QTabWidget, Themeable):
     def __format_issues_for_info_output(self, results: list[FileAnalysisResult]) -> list[str]:
         formatted_issues = []
         for result in results:
-            formatted_issues.append(f"### File {result.file_path} has {len(result.issues)} issues:")
+            formatted_issues.append(f"### File {result.file_path} has {len(result.issues)} issue(s):")
             prettified_issues = result.get_prettied_issues()
             formatted_issues += [f"- [ ] {issue}" for issue in prettified_issues]
+            formatted_issues.append("")
         return formatted_issues
     
     def __update_result_table(self, results: list[FileAnalysisResult]):

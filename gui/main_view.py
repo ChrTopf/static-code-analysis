@@ -16,14 +16,14 @@ class MainView(QWidget, Themeable):
         self.setGeometry(100, 100, 500, 400)
         self.is_dark_mode = True
         self.theme_toggle = None
-        self.repository_selection = None
+        self.repository_section: RepositorySection = None
         self.run_button = None
-        self.result_section = None
+        self.result_section: ResultSection = None
         self.__init_ui()
         self.apply_theme(self.__get_dark_theme_variables())
         
     def get_repository_section(self) -> RepositorySection:
-        return self.repository_selection
+        return self.repository_section
 
     def get_run_analysis_button(self) -> QPushButton:
         return self.run_button
@@ -46,8 +46,8 @@ class MainView(QWidget, Themeable):
         
         main_layout.addLayout(self.__create_title_layout())
         
-        self.repository_selection = RepositorySection()
-        main_layout.addWidget(self.repository_selection)
+        self.repository_section = RepositorySection()
+        main_layout.addWidget(self.repository_section)
 
         # Analysis button
         self.run_button = self.__create_run_button()
@@ -81,20 +81,20 @@ class MainView(QWidget, Themeable):
         """
     
     def __create_run_button(self) -> QPushButton:
-        run_button = QPushButton("▶ Run Static Code Analysis")
+        run_button = QPushButton("Run Static Code Analysis")
         run_button.setObjectName("run_button")
-        run_button.setFont(QFont("Arial", 13, QFont.Bold))
+        run_button.setFont(QFont("Arial", 20, QFont.Bold))
         return run_button
     
     def __get_run_button_style(self) -> str:
         return """
             #run_button {
                 background-color: $primary;
-                color: $light;
+                color: $dark;
                 border: none;
                 padding: 8px 16px;
                 border-radius: 6px;
-                font-size: 13px;
+                font-size: 20px;
                 margin: 4px 0;
             }
             
@@ -124,13 +124,16 @@ class MainView(QWidget, Themeable):
             self.apply_theme(self.__get_light_theme_variables())
     
     def apply_theme(self, variables: dict[str, str]):
-        self.setStyleSheet(self._replace_theme_variables(variables, self.__get_default_style()))
+        style = self.__get_default_style() + "\n" + self.__get_title_style() + "\n" + self.__get_run_button_style()
+        self.setStyleSheet(self._replace_theme_variables(variables, style))
+        self.repository_section.apply_theme(variables)
+        self.result_section.apply_theme(variables)
         
     def __get_default_style(self):
         """Get dark theme stylesheet"""
         return """
             QWidget {
-                background-color: $body-bg;
+                background-color: $body-bg-dark;
                 color: $dark;
                 font-family: Arial, sans-serif;
             }
@@ -145,7 +148,7 @@ class MainView(QWidget, Themeable):
                 height: 18px;
                 border: 2px solid $dark;
                 border-radius: 3px;
-                background-color: $body-bg-dark;
+                background-color: $body-bg-light;
             }
             
             QCheckBox::indicator:checked {
@@ -159,12 +162,12 @@ class MainView(QWidget, Themeable):
             }
             
             QSplitter::handle {
-                background-color: $body-bg-light;
+                background-color: $body-bg;
                 height: 3px;
             }
             
             QSplitter::handle:hover {
-                background-color: $primary;
+                background-color: $secondary;
             }
             
             QTabWidget::pane {
@@ -188,7 +191,7 @@ class MainView(QWidget, Themeable):
             }
             
             QTabBar::tab:hover {
-                background-color: $primary;
+                background-color: $secondary;
             }
         """
     

@@ -66,7 +66,7 @@ class Analysis:
     def __analyze_all_files(self, analysis_config: AnalysisConfig, changed_files: list[ChangedFile]) \
             -> list[FileAnalysisResult]:
         self.__logger.info(f"Analyzing {len(changed_files)} changed files...")
-        file_analyzer = FileAnalyzer(analysis_config)
+        file_analyzer = FileAnalyzer(analysis_config, self.__git_assistant.get_repository_directory())
         results = []
         for changed_file in changed_files:
             self.__logger.info(f"Analyzing changed file: {changed_file.file_path}")
@@ -78,7 +78,7 @@ class Analysis:
         try:
             return file_analyzer.analyze_changed_file(changed_file)
         except AnalysisException as analysis_exception:
-            result = FileAnalysisResult(changed_file.file_path)
+            result = FileAnalysisResult(changed_file.get_relative_path(self.__git_assistant.get_repository_directory()))
             result.issues.append(LineAnalysisIssue(0, str(analysis_exception)))
             return result
         
