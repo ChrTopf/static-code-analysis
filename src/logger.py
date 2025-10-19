@@ -4,8 +4,9 @@ from gui.main_view import MainView
 
 
 class Logger:
-    def __init__(self):
+    def __init__(self, verbose: bool):
         self.view = None
+        self.verbose = verbose
         
     def set_gui(self, view : MainView):
         self.view = view
@@ -14,11 +15,15 @@ class Logger:
         return self.view is not None
 
     def debug(self, message : str):
+        if not self.verbose:
+            return
         print(f"[\033[35mDEBG\033[0m]: {message}")
         if self.__has_gui():
             self.view.log(message, level="DEBUG")
 
     def info(self, message : str):
+        if not self.verbose:
+            return
         print(f"[\033[32mINFO\033[0m]: {message}")
         if self.__has_gui():
             self.view.log(message, "INFO")

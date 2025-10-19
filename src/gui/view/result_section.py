@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTex
 
 from gui.themeable import Themeable
 from models.file_analysis_result import FileAnalysisResult
+from util.analysis_result_formatter import AnalysisResultFormatter
 
 
 class ResultSection(QTabWidget, Themeable):
@@ -193,29 +194,8 @@ class ResultSection(QTabWidget, Themeable):
         self.upper_output.clear()
         
     def __update_result_text(self, results: list[FileAnalysisResult]):
-        results = self.__filter_results_for_issues(results)
-        if len(results) > 0:
-            result_text = self.__get_result_text_for_issues(results)
-        else:
-            result_text = "✅ No issues found in changed code"
+        result_text = AnalysisResultFormatter.build_result_text(results)
         self.upper_output.setText(result_text)
-
-    def __filter_results_for_issues(self, results: list[FileAnalysisResult]) -> list[FileAnalysisResult]:
-        return [result for result in results if result.has_issues()]
-    
-    def __get_result_text_for_issues(self, results: list[FileAnalysisResult]) -> str:
-        lines = [f"❌ Found {len(results)} issues in changed code"]
-        lines += self.__format_issues_for_info_output(results)
-        return "\n".join(lines)
-
-    def __format_issues_for_info_output(self, results: list[FileAnalysisResult]) -> list[str]:
-        formatted_issues = []
-        for result in results:
-            formatted_issues.append(f"### File {result.file_path} has {len(result.issues)} issue(s):")
-            prettified_issues = result.get_prettied_issues()
-            formatted_issues += [f"- [ ] {issue}" for issue in prettified_issues]
-            formatted_issues.append("")
-        return formatted_issues
     
     def __update_result_table(self, results: list[FileAnalysisResult]):
         for result in results:

@@ -2,20 +2,34 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
+from cli_argument_parser import CliArgumentParser
 from config_parser import ConfigParser
 from gui.main_controller import MainController
 from gui.main_model import MainModel
 from gui.main_view import MainView
+from headless_analyzer import HeadlessAnalyzer
 from logger import Logger
 
 
 class StaticCodeAnalysisApp:
     def __init__(self):
-        self.logger = Logger()
+        self.cli_args = CliArgumentParser()
+        self.arguments = self.cli_args.get_parsed_arguments()
+        self.logger = Logger(self.arguments.verbose)
         self.config_parser = ConfigParser()
         
-    def run(self) -> int:      
-        return self.__run_gui()
+    def run(self) -> int:
+        if self.arguments.headless:
+            return self.__run_headless()
+        else:    
+            return self.__run_gui()
+        
+    def __run_headless(self) -> int:
+        self.headless_analyzer = HeadlessAnalyzer(self.logger, self.config_parser)
+        if not self.headless_analyzer.is_configuration_valid(self.arguments):
+            return 2
+        else:
+            return self.headless_analyzer.perform_analysis(self.arguments)
     
     def __run_gui(self):
         self.app = QApplication(sys.argv)
