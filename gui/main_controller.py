@@ -1,4 +1,5 @@
 from gui.adapter.analysis_complete import AnalysisCompleteAdapter
+from gui.commands.set_changed_lines_only import SetChangedLinesOnly
 from gui.commands.set_repository import SetRepositoryCommand
 from gui.commands.set_source_branch import SetSourceBranch
 from gui.commands.set_target_branch import SetTargetBranch
@@ -16,6 +17,21 @@ class MainController:
         self.start_analysis_command = None
         self.set_source_branch_command = None
         self.set_target_branch_command = None
+        self.set_changed_lines_only_command = None
+
+    def initialize_application(self):
+        try:
+            self.model.prepare()
+            repository_info = self.model.get_repository_info()
+            self.view.get_repository_section().update_repository_info(repository_info)
+            self.view.get_repository_section().select_source_branch(self.model.get_initial_source_branch())
+            self.view.get_repository_section().select_target_branch(self.model.get_initial_target_branch())
+            self.view.get_repository_section().get_changed_lines_only_checkbox().setChecked(
+                self.model.get_changed_lines_only()
+            )
+        except Exception as e:
+            self.logger.error(str(e))
+        self.logger.info("Static Code Analysis Tool started")
         
     def register_commands(self):
         self.set_repository_command = SetRepositoryCommand(self.logger, self.model, self.view)
@@ -37,18 +53,12 @@ class MainController:
             self.set_target_branch_command.execute
         )
         
+        self.set_changed_lines_only_command = SetChangedLinesOnly(self.logger, self.model, self.view)
+        self.view.get_repository_section().get_changed_lines_only_checkbox().stateChanged.connect(
+            self.set_changed_lines_only_command.execute
+        )
+        
     def register_subscriptions(self):
         analysis_complete_adapter = AnalysisCompleteAdapter(self.logger, self.view)
         self.model.subscribe_analysis_complete(analysis_complete_adapter)
         self.logger.debug("All subscriptions have been registered")
-
-    def initialize_application(self):
-        try:
-            self.model.prepare()
-            repository_info = self.model.get_repository_info()
-            self.view.get_repository_section().update_repository_info(repository_info)
-            self.view.get_repository_section().select_source_branch(self.model.get_initial_source_branch())
-            self.view.get_repository_section().select_target_branch(self.model.get_initial_target_branch())
-        except Exception as e:
-            self.logger.error(str(e))
-        self.logger.info("Static Code Analysis Tool started")

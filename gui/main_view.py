@@ -57,6 +57,7 @@ class MainView(QWidget, Themeable):
         self.result_section = ResultSection()
         main_layout.addWidget(self.result_section)
         
+        self.setObjectName("main_layout")
         self.setLayout(main_layout)
         
     def __create_title_layout(self) -> QHBoxLayout:
@@ -132,8 +133,11 @@ class MainView(QWidget, Themeable):
     def __get_default_style(self):
         """Get dark theme stylesheet"""
         return """
-            QWidget {
+            #main_layout {
                 background-color: $body-bg-dark;
+            }
+        
+            QWidget {
                 color: $dark;
                 font-family: Arial, sans-serif;
             }

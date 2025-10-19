@@ -24,9 +24,9 @@ class StaticCodeAnalysisApp:
         self.logger.set_gui(self.view)
         self.model = MainModel(self.logger, self.config_parser)
         self.controller = MainController(self.model, self.view, self.logger)
+        self.controller.initialize_application()
         self.controller.register_commands()
         self.controller.register_subscriptions()
-        self.controller.initialize_application()
         self.view.show()
         return self.app.exec_()
 

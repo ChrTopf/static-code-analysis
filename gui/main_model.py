@@ -63,6 +63,12 @@ class MainModel:
     
     def set_target_branch(self, target_branch: str):
         self.analysis_arguments.destination_branch = target_branch
+        
+    def set_changed_lines_only(self, changed_lines_only: bool):
+        self.analysis_arguments.changed_lines_only = changed_lines_only
+        
+    def get_changed_lines_only(self) -> bool:
+        return self.analysis_arguments.changed_lines_only
     
     def save_analysis_arguments(self):
         self.config_parser.store_analysis_arguments(self.analysis_arguments)

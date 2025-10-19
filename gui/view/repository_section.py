@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QComboBox
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QComboBox, QCheckBox
 
 from gui.themeable import Themeable
 from models.repository_info import RepositoryInfo
@@ -12,6 +12,7 @@ class RepositorySection(QFrame, Themeable):
         self.dir_label = None
         self.source_branch = None
         self.dest_branch = None
+        self.changed_lines_only_checkbox = None
         
         self.setObjectName("section_frame")
         repo_layout = QVBoxLayout()
@@ -26,6 +27,9 @@ class RepositorySection(QFrame, Themeable):
 
         self.branch_selection = self.__create_branch_selection()
         repo_layout.addLayout(self.branch_selection)
+        
+        additional_settings_section = self.__create_additional_settings_section()
+        repo_layout.addLayout(additional_settings_section)
 
         self.setLayout(repo_layout)
         
@@ -139,6 +143,12 @@ class RepositorySection(QFrame, Themeable):
             }
         """
     
+    def __create_additional_settings_section(self) -> QVBoxLayout:
+        settings_layout = QVBoxLayout()
+        self.changed_lines_only_checkbox = QCheckBox("Analyze changed lines only")
+        settings_layout.addWidget(self.changed_lines_only_checkbox)
+        return settings_layout
+    
     def get_source_branch_selection(self) -> QComboBox:
         return self.source_branch
     
@@ -159,6 +169,9 @@ class RepositorySection(QFrame, Themeable):
 
     def get_select_repository_button(self) -> QPushButton:
         return self.dir_button
+    
+    def get_changed_lines_only_checkbox(self) -> QCheckBox:
+        return self.changed_lines_only_checkbox
 
     def update_repository_path(self, repository_path):
         self.dir_label.setText(repository_path)
