@@ -160,6 +160,7 @@ See the [Implementing New Checks](docs/implementing-checks.md) guide for detaile
 
 ## License
 
+-> See LICENSE
 This project is maintained by ChrTopf and sponsored by TheHolyException.
 
 ---
