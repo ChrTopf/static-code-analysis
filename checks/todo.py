@@ -1,5 +1,4 @@
 import re
-from abc import ABC
 
 from checks.check import Check
 from models.file_analysis_result import FileAnalysisResult
@@ -7,7 +6,7 @@ from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 
-class TODO(Check, ABC):
+class TODO(Check):
     def __init__(self):
         super()
         self.regex = r"todo([^u]|\s)"

@@ -12,12 +12,12 @@ class CheckFactory:
     def __init__(self, analysis_config: AnalysisConfig):
         self.analysis_config = analysis_config
         self.all_checks: dict[str, type] = {
-            "line_length": type(LineLength),
-            "replacement_characters": type(ReplacementCharacters),
-            "tabs": type(Tabs),
-            "todo": type(TODO),
-            "trailing_whitespace": type(TrailingWhitespace),
-            "region_newline": type(RegionNewline),
+            "line_length": LineLength,
+            "replacement_characters": ReplacementCharacters,
+            "tabs": Tabs,
+            "todo": TODO,
+            "trailing_whitespace": TrailingWhitespace,
+            "region_newline": RegionNewline,
         }
         
     def generate_checks(self, configured_checks: dict[str, object]) -> list[Check]:
@@ -29,8 +29,11 @@ class CheckFactory:
     def __create_check(self, wanted_check_name: str, check_settings: object) -> Check:
         for check_name, type_definition in self.all_checks.items():
             if check_name == wanted_check_name:
-                check_instance = type_definition(check_settings)
-                if not isinstance(check_instance, type(Check)):
+                if check_settings is None:
+                    check_instance = type_definition()
+                else:
+                    check_instance = type_definition(check_settings)
+                if not isinstance(check_instance, Check):
                     raise TypeError(f"The type defined for '{wanted_check_name}' is not an instance of the abstract "
                                     f"class 'Check'. Please use 'Check' as the base class when writing new checks!")
                 return check_instance

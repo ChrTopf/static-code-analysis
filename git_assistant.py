@@ -1,7 +1,10 @@
 import os
 import re
+
 from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError
+
 from models.changed_file import ChangedFile
+
 
 class GitAssistant:
     def __init__(self, repo_directory: str):
@@ -60,7 +63,7 @@ class GitAssistant:
         return changes
 
     def __parse_diff_to_changed_file(self, diff: Diff, changed_lines_only: bool) -> ChangedFile:
-        file_path = diff.a_path
+        file_path = self.repo.working_dir + os.path.sep + diff.b_path
         lines = self.__get_changed_lines_of_diff(diff)
         check_entire_file = (not changed_lines_only and not diff.renamed_file) or diff.new_file
         return ChangedFile(file_path, lines, check_entire_file)

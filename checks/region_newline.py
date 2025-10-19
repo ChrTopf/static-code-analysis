@@ -5,7 +5,7 @@ from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 
-class RegionNewline(Check):        
+class RegionNewline(Check):
     def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
         for changed_line in changed_file.changed_lines:
             self.__perform_check_for_line(changed_file, changed_line, result)

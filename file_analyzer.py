@@ -41,7 +41,7 @@ class FileAnalyzer:
         return False
     
     def __get_encoding_for_file(self, changed_file: ChangedFile) -> str:
-        for file_pattern, encoding in self.analysis_config.file_encodings:
+        for file_pattern, encoding in self.analysis_config.file_encodings.items():
             if changed_file.matches_git_pattern(file_pattern):
                 return encoding
         return "utf-8"

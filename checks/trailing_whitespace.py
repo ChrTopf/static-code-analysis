@@ -1,12 +1,10 @@
-from abc import ABC
-
 from checks.check import Check
 from models.file_analysis_result import FileAnalysisResult
 from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 
-class TrailingWhitespace(Check, ABC):
+class TrailingWhitespace(Check):
     def __init__(self, max_trailing_whitespaces: int):
         self.max_trailing_whitespaces = max_trailing_whitespaces
 

@@ -1,11 +1,10 @@
-from abc import ABC
 from checks.check import Check
 from models.file_analysis_result import FileAnalysisResult
 from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 
-class LineLength(Check, ABC):
+class LineLength(Check):
     def __int__(self, max_line_length: int):
         self.max_line_length = max_line_length
 

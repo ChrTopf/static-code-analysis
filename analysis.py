@@ -65,7 +65,7 @@ class Analysis:
     
     def __analyze_all_files(self, analysis_config: AnalysisConfig, changed_files: list[ChangedFile]) \
             -> list[FileAnalysisResult]:
-        self.__logger.info("Analyzing changed files...")
+        self.__logger.info(f"Analyzing {len(changed_files)} changed files...")
         file_analyzer = FileAnalyzer(analysis_config)
         results = []
         for changed_file in changed_files:

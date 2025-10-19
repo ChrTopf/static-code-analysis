@@ -38,7 +38,7 @@ class MainController:
         )
         
     def register_subscriptions(self):
-        analysis_complete_adapter = AnalysisCompleteAdapter(self.view)
+        analysis_complete_adapter = AnalysisCompleteAdapter(self.logger, self.view)
         self.model.subscribe_analysis_complete(analysis_complete_adapter)
         self.logger.debug("All subscriptions have been registered")
 

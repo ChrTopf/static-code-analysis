@@ -1,3 +1,4 @@
+import traceback
 from threading import Thread
 from typing import List
 
@@ -84,7 +85,7 @@ class MainModel:
             self.analysis_results = self.analysis.execute(self.analysis_arguments)
             self.logger.info("Analysis completed.")
         except Exception as e:
-            self.logger.error(f"Analysis failed. Reason: {str(e)}")
+            self.logger.error(f"Analysis failed. Reason:\n{traceback.format_exc()}")
         finally:
             self.__notify_analysis_complete(self.analysis_results)
             self.is_analyzing = False
