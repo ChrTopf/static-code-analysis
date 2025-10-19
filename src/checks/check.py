@@ -1,4 +1,5 @@
 from abc import abstractmethod, ABC
+
 from models.file_analysis_result import FileAnalysisResult
 from models.loaded_file import LoadedFile
 
