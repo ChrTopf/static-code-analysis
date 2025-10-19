@@ -34,5 +34,5 @@ class StartAnalysis(Command):
         self.logger.info(f"Starting analysis: comparing {source_branch} against {target_branch}")
         self.model.save_analysis_arguments()
         self.view.set_analysis_running(True)
-        self.view.get_result_section().clear_results()
+        self.view.get_result_section().clear_analysis_results()
         self.model.start_analysis()

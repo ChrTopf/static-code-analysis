@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QTableWidget, QHeaderView, \
     QTabWidget, QTableWidgetItem, QApplication
 
@@ -155,27 +155,6 @@ class ResultSection(QTabWidget, Themeable):
         clipboard = QApplication.clipboard()
         clipboard.setText(self.upper_output.toPlainText())
 
-    def show_analysis_results(self, analysis_results: list[FileAnalysisResult]):
-        """Display analysis results in the table"""
-        self.problem_table.setRowCount(0)  # Clear existing results
-
-        for result in analysis_results:
-            for issue in result.issues:
-                row_position = self.problem_table.rowCount()
-                self.problem_table.insertRow(row_position)
-                self.problem_table.setItem(row_position, 0, QTableWidgetItem(result.file_path))
-                self.problem_table.setItem(row_position, 1, QTableWidgetItem(str(issue.line_number)))
-                self.problem_table.setItem(row_position, 2, QTableWidgetItem(issue.issue_description))
-
-    def show_analysis_summary(self, summary: str):
-        """Display analysis summary in the upper output"""
-        self.upper_output.setText(summary)
-
-    def clear_results(self):
-        """Clear all results from the UI"""
-        self.problem_table.setRowCount(0)
-        self.upper_output.clear()
-
     def apply_theme(self, theme_variables: dict[str, str]) -> None:
         self.summary_widget.setStyleSheet(self._replace_theme_variables(
             theme_variables, self.__get_summary_tab_style()
@@ -186,3 +165,48 @@ class ResultSection(QTabWidget, Themeable):
         self.console_widget.setStyleSheet(self._replace_theme_variables(
             theme_variables, self.__get_console_tab_style()
         ))
+
+    def show_analysis_results(self, analysis_results: list[FileAnalysisResult]):
+        self.clear_analysis_results()
+        if analysis_results is None:
+            return
+        self.__update_result_text(analysis_results)
+        self.__update_result_table(analysis_results)
+
+    def clear_analysis_results(self):
+        self.problem_table.setRowCount(0)
+        self.upper_output.clear()
+        
+    def __update_result_text(self, results: list[FileAnalysisResult]):
+        results = self.__filter_results_for_issues(results)
+        if len(results) > 0:
+            result_text = self.__get_result_text_for_issues(results)
+        else:
+            result_text = "✅ No issues found in changed code"
+        self.upper_output.setText(result_text)
+
+    def __filter_results_for_issues(self, results: list[FileAnalysisResult]) -> list[FileAnalysisResult]:
+        return [result for result in results if result.has_issues()]
+    
+    def __get_result_text_for_issues(self, results: list[FileAnalysisResult]) -> str:
+        lines = [f"❌ Found {len(results)} issues in changed code"]
+        lines += self.__format_issues_for_info_output(results)
+        return "\n".join(lines)
+
+    def __format_issues_for_info_output(self, results: list[FileAnalysisResult]) -> list[str]:
+        formatted_issues = []
+        for result in results:
+            formatted_issues.append(f"### File {result.file_path} has {len(result.issues)} issues:")
+            prettified_issues = result.get_prettied_issues()
+            formatted_issues += [f"- [ ] {issue}" for issue in prettified_issues]
+        return formatted_issues
+    
+    def __update_result_table(self, results: list[FileAnalysisResult]):
+        for result in results:
+            for issue in result.issues:
+                row_position = self.problem_table.rowCount()
+                self.problem_table.insertRow(row_position)
+                self.problem_table.setItem(row_position, 0, QTableWidgetItem(result.file_path))
+                self.problem_table.setItem(row_position, 1, QTableWidgetItem(str(issue.line_number)))
+                self.problem_table.setItem(row_position, 2, QTableWidgetItem(issue.issue_description))
+        
