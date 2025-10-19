@@ -90,5 +90,3 @@ Now you can execute the final command to verify, that no password prompt is show
 ```shell
 git fetch -v -- origin
 ```
-
-

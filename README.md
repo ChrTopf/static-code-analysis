@@ -1,114 +1,170 @@
 # Static Code Analysis for Pull Requests
 
-This program analyzes all changes between branches in a Git repository with regard to Clean Code principles and outputs a TODO list containing all detected anomalies. This list can then be copy-pasted as a comment under a Pull Request in TFS manually.
+A Python-based tool that analyzes changes between Git branches according to Clean Code principles and generates actionable TODO lists for Pull Request reviews. The tool supports both GUI and headless modes, making it suitable for both interactive use and CI/CD integration.
 
-| Property      | Value                                                                                |
-| ------------- | ------------------------------------------------------------------------------------ |
-| Author        | ChrTopf                                                                              |
-| Sponsor       | TheHolyException                                                                     |
-| Last Modified | 25.07.2025                                                                           |
-| Tags          | `DevOps`<br/>`Pull Request`<br/>`Clean Code`<br/>`Static Code Analysis`<br/>`Python` |
+| Property      | Value                                                                             |
+| ------------- |-----------------------------------------------------------------------------------|
+| Author        | ChrTopf                                                                           |
+| Sponsor       | TheHolyException                                                                  |
+| Last Modified | 19.10.2025                                                                        |
+| Tags          | `Git`<br/>`Pull Request`<br/>`Clean Code`<br/>`Static Code Analysis`<br/>`Python` |
 
 ## Preview
 
+![](./assets/20251019%20preview.png)
 
-
-## Getting Started
+## Quick Start
 
 ### Installation
 
-1. Download the latest release from the GitHub releases page of this repository.
-2. Optional: For a satisfactory experienc, copy the build output directory into the repository where you want to use the static code analysis.
-3. Execute the `Static Code Analysis.exe` by double clicking on it to run the application.
-4. Optional: Configure the analysis in `config.json`.
+#### Option 1: Build From Source
 
-### Usage
+This assumes that you already have python 3.8 or higher installed on your system.
+Setting up from source also works on windows with batch files instead of the shell scripts.
 
-1. Execute the `Static Code Analysis.exe` by double clicking on it to run the application.
-
-2. The GUI application will launch with the following workflow:
-   
-   - **Repository Selection**: Choose the root directory of a Git repository
-   - **Source Branch**: Select the branch containing changes for the Pull Request
-   - **Target Branch**: Select the target branch where changes will be merged
-   - **Perform Analysis**: The program processes the changes and displays results
-
-3. The application features:
-   
-   - **GUI Interface**: User-friendly PyQt5 interface for easy navigation
-   - **Configuration Management**: Customizable analysis rules via `config.json`
-   - **Auto Git Discovery**: Automatic detection of Git repositories
-   - **In-App Logging**: Real-time feedback during analysis
-   - **Selective Analysis**: Only analyzes changed lines in modified files
-
-## Configuration
-
-The application uses a `config.json` file to customize analysis rules:
-
-```json
-{
-  "file_encodings": {
-    ".cs": "utf-8-sig",
-    ".sql": "utf-16le",
-    ".py": "utf-8"
-  },
-  "analysis_checks": {
-    "check_line_length": {
-      "enabled": true,
-      "max_length": 120
-    },
-    "check_trailing_spaces": {
-      "enabled": true,
-      "max_trailing_whitespaces": 10
-    },
-    "check_todo": {
-      "enabled": true
-    }
-  }
-}
+```bash
+git clone https://github.com/ChrTopf/static-code-analysis
+cd static-code-analysis
+chmod +x setup-venv.sh
+chmod +x build.sh
+./setup-venv.sh
 ```
 
-## FAQ
+#### Option 2: Executable (Windows)
 
-### What can this program be used for?
+1. Download the latest release from the GitHub releases page
+2. Move the application to your desired location
+3. Make sure you have the `analysis_config.json5` file stored in the repository you want to be checked or in the working directory of the executable. 
+4. Run `Static Code Analysis.exe`
 
-This program can be used for automatic analysis of Pull Request changes regarding Clean Code principles. It can be stored as a tool in a repository and updated as needed.
+### Basic Usage
 
-**Example:**
+#### GUI Mode
 
-You created a Pull Request to merge changes from branch `foo` to `master`. You want to ensure Clean Code guidelines are met so reviewers don't have to focus on these aspects. Run this static code analysis program to get a TODO list containing all Clean Code improvements needed. Copy this list and add it as a comment to your Pull Request, then improve the code and check off items in TFS.
+Just run the built tool by double clicking on it. This works for Windows and GNU/Linux.
 
-### What can the program check?
+#### Headless Mode (CI/CD)
 
-The program only analyzes files included in a Pull Request, **not** the entire repository. Currently supported checks include:
+```bash
+python src/main.py --headless --repository /path/to/repo --source feature-branch --target main
+```
 
-| Check               | Description                                                                            |
-| ------------------- | -------------------------------------------------------------------------------------- |
-| File Encodings      | Verifies correct encoding: `.cs` files in `UTF8-SIG`, `.sql` files in `UTF16-LE`, etc. |
-| Unknown Characters  | Detects � characters in code                                                           |
-| Maximum Line Length | Ensures lines don't exceed 120 characters (configurable)                               |
-| Trailing Whitespace | Checks for excessive trailing spaces (configurable limit)                              |
-| TODOs in Code       | Ensures no open TODOs remain in code                                                   |
-| Region Formatting   | Ensures proper spacing around `#region` and `#endregion` tags in C# code               |
-| Tab Characters      | Detects tab characters in code                                                         |
+Tipp: Use the headless mode paired with git hooks. Learn more about git hooks [here](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks).
 
-### Architecture
+## Documentation
 
-The application follows an MVC (Model-View-Controller) pattern:
+📚 **Comprehensive Documentation Available:**
 
-- **Model** (`model.py`): Handles data and business logic
-- **View** (`gui.py`): PyQt5 GUI interface
-- **Controller** (`controller.py`): Coordinates between model and view
-- **Git Integration** (`git.py`): Handles Git repository operations
-- **Analysis Engine** (`sca_checks.py`): Performs code quality checks
-- **Configuration** (`config_manager.py`): Manages application settings
+- **[📋 Configuration Guide](docs/configuration.md)** - Complete guide to `analysis_config.json5` setup and available checks
+- **[🚀 Getting Started Guide](docs/getting-started.md)** - Developer setup, architecture overview, and development guidelines
+- **[🔧 Implementing New Checks](docs/implementing-checks.md)** - Step-by-step guide for creating custom analysis checks
+- **[🔑 SSH Keys Setup](docs/setup-ssh-keys.md)** - Instructions for Git SSH configuration
+
+## Features
+
+- **🖥️ Dual Mode Operation**: GUI for interactive use, headless for CI/CD integration
+- **⚙️ Configurable Analysis**: Customizable rules via `analysis_config.json5`
+- **📁 Smart File Handling**: Automatic encoding detection and file filtering
+- **🔍 Focused Analysis**: Only analyzes changed lines between branches
+- **🌟 Clean Code Focus**: Enforces coding standards and best practices
+- **🏗️ Extensible Architecture**: Easy to add new checks and rules
+
+## Workflow
+
+1. **Repository Selection**: Choose Git repository root directory
+2. **Branch Configuration**: Select source and target branches
+3. **Analysis Execution**: Tool processes file differences
+4. **Results Review**: View categorized issues and suggested improvements
+5. **Integration**: Copy results to Pull Request comments
+
+## Available Checks
+
+| Check                      | Description                       | Configurable    |
+| -------------------------- | --------------------------------- | --------------- |
+| **Line Length**            | Enforces maximum line length      | ✅ Max length    |
+| **Trailing Whitespace**    | Detects excessive trailing spaces | ✅ Max count     |
+| **TODO Comments**          | Finds unresolved TODO items       | ❌               |
+| **Tab Characters**         | Detects tab usage                 | ❌               |
+| **Replacement Characters** | Finds encoding issues (�)         | ❌               |
+| **Region Formatting**      | C# region spacing                 | ❌               |
+| **File Encodings**         | Validates expected encodings      | ✅ Per file type |
+
+## Use Cases
+
+### Pull Request Quality Assurance
+
+Perfect for ensuring clean code standards before merge:
+
+- Run analysis on feature branches before creating PR
+- Generate TODO lists for code review comments
+- Enforce team coding standards automatically
+- Reduce reviewer workload by catching common issues
+
+### CI/CD Integration
+
+Integrate into your development pipeline:
+
+```bash
+# In your CI pipeline
+python src/main.py --headless --repository . --source $CI_BRANCH --target main --quiet
+```
+
+### Team Development
+
+- Standardize code quality across team members
+- Onboard new developers with consistent standards
+- Maintain legacy code quality during refactoring
+
+## Architecture
+
+The application follows clean architecture principles with clear separation of concerns:
+
+```
+┌─────────────────┬─────────────────┬─────────────────┐
+│   Presentation  │    Business     │      Data       │
+│     Layer       │     Layer       │     Layer       │
+├─────────────────┼─────────────────┼─────────────────┤
+│ • GUI (PyQt5)   │ • Analysis      │ • Git           │
+│ • CLI Interface │ • Check System  │ • File System   │
+│ • Controllers   │ • Configuration │ • Config Files  │
+└─────────────────┴─────────────────┴─────────────────┘
+```
+
+**Key Components:**
+
+- **MVC Pattern**: Clean separation between UI, logic, and data
+- **Plugin Architecture**: Extensible check system
+- **Configuration Management**: Flexible JSON5-based settings
+- **Git Integration**: Robust branch and diff operations
+
+## Contributing
+
+We welcome contributions! Please see our documentation for guidelines:
+
+1. **Read the Documentation**: Start with the [Getting Started Guide](docs/getting-started.md)
+2. **Follow Standards**: Ensure your code follows the existing patterns
+3. **Add Tests**: Include tests for new functionality
+4. **Update Docs**: Update relevant documentation for changes
+
+### Adding New Checks
+
+See the [Implementing New Checks](docs/implementing-checks.md) guide for detailed instructions.
+
+## Support
+
+- 📖 **Documentation**: Check the `docs/` directory for comprehensive guides
+- 🐛 **Issues**: Report bugs via GitHub Issues
+- 💡 **Feature Requests**: Submit enhancement ideas via GitHub Issues
+- 🔧 **Configuration Help**: See [Configuration Guide](docs/configuration.md)
+
+## License
+
+This project is maintained by ChrTopf and sponsored by TheHolyException.
+
+---
 
 ## Version History
 
-| Date/Version | Changes                                                                                                                                                                            |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 16.06.2025   | Initial version of the program released                                                                                                                                            |
-| 03.07.2025   | - GUI implemented<br/>- Config file implemented<br/>- Auto Git Repository Discovery implemented<br/>- In-app logging implemented<br/>- Bugfix: only changed lines are checked<br/> |
-| 04.07.2025   | - improved code for analysis<br/>- added feature for automatically selecting master branch as destination<br/>- modernized the gui                                                 |
-| 17.07.2025   | - shrinked the gui<br/>- improved gui layout and styling                                                                                                                           |
-| 25.07.2025   | - changed gui layout to make it even more compact                                                                                                                                  |
+| Date/Version | Changes                  |
+| ------------ | ------------------------ |
+| 19.10.2025   | Initial version released |
