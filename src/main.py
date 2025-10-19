@@ -15,7 +15,7 @@ class StaticCodeAnalysisApp:
     def __init__(self):
         self.cli_args = CliArgumentParser()
         self.arguments = self.cli_args.get_parsed_arguments()
-        self.logger = Logger(self.arguments.verbose)
+        self.logger = Logger(self.arguments.quiet)
         self.config_parser = ConfigParser()
         
     def run(self) -> int:

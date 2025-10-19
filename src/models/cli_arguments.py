@@ -9,7 +9,7 @@ class CliArguments:
         self.repository: str = parsed_arguments.repository
         self.source_branch: str = parsed_arguments.source_branch
         self.target_branch: str = parsed_arguments.target_branch
-        self.changed_lines_only: bool = parsed_arguments.changed_lines_only
-        self.verbose: bool = parsed_arguments.verbose
+        self.changed_lines_only: bool = not parsed_arguments.all_lines
+        self.quiet: bool = parsed_arguments.quiet
         self.exit_with_code: bool = parsed_arguments.exit_with_code
         

@@ -12,10 +12,10 @@ class CliArgumentParser:
             epilog="This tool is developed by ChrTopf and was sponsored by TheHolyException. "
         )
         self.parser.add_argument("-hl", 
-                                 "--headless", 
-                                 type=bool, 
-                                 default=False,
-                                 help="Run without graphical user interface.")
+                                 "--headless",
+                                 action='store_true',
+                                 help="Specify this option to run without the graphical user interface. If this is not "
+                                      "specified, all other options will be ignored. Exceptions are: --quiet.",)
         self.parser.add_argument("-r", 
                                  "--repository",
                                  type=str,
@@ -32,17 +32,15 @@ class CliArgumentParser:
                                  default=None,
                                  help="The target branch of the pull request. Usually this should be the master "
                                       "branch.")
-        self.parser.add_argument("-c", 
-                                 "--changed-lines-only", 
-                                 type=bool,
-                                 default=True,
-                                 help="Set this to false to analyze all lines of the changed files.")
-        self.parser.add_argument("-v", 
-                                 "--verbose", 
-                                 type=bool,
-                                 default=False,
-                                 help="Set this to true, if you want to see informational and debug output. If set to "
-                                      "false, only warnings and errors are printed.")
+        self.parser.add_argument("-a", 
+                                 "--all-lines",
+                                 action='store_true',
+                                 help="Specify this option, if you want to analyze all lines in the changed files.")
+        self.parser.add_argument("-q", 
+                                 "--quiet",
+                                 action='store_false',
+                                 help="Specify this option if you only want to see the found issues, warnings and "
+                                      "errors.")
         self.parser.add_argument("-e", 
                                  "--exit-with-code", 
                                  type=bool,
