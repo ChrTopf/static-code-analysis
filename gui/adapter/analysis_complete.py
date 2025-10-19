@@ -1,16 +1,24 @@
+from PyQt5.QtCore import QObject, pyqtSignal
+
 from gui.adapter.adapter import Adapter
 from gui.main_view import MainView
 from logger import Logger
-
 from models.file_analysis_result import FileAnalysisResult
 
 
-class AnalysisCompleteAdapter(Adapter):
+class AnalysisCompleteAdapter(Adapter, QObject):
+    analysis_completed = pyqtSignal(object)
+
     def __init__(self, logger: Logger, view: MainView):
-        super().__init__(view)
+        Adapter.__init__(self, view)
+        QObject.__init__(self)
         self.logger = logger
+        self.analysis_completed.connect(self._handle_analysis_complete)
         
     def on_signal_received(self, results: list[FileAnalysisResult] | None):
+        self.analysis_completed.emit(results)
+
+    def _handle_analysis_complete(self, results: list[FileAnalysisResult] | None):
         if results:
             if len(results) == 0:
                 self.__display_analysis_successful()
@@ -19,6 +27,7 @@ class AnalysisCompleteAdapter(Adapter):
         self.view.set_analysis_running(False)
             
     def __display_analysis_results(self, results: list[FileAnalysisResult]):
+        # TODO: fix result checking when no issues were found
         self.logger.warn(f"Found {len(results)} issues that should be fixed")
         if self.view:
             # Display issues in the output table
@@ -26,7 +35,7 @@ class AnalysisCompleteAdapter(Adapter):
             # Format and display issues in Info Output
             issues = []
             issues.append(f"❌ Found {len(results)} issues in changed code")
-            issues += self._format_issues_for_info_output(results)
+            issues = issues + self._format_issues_for_info_output(results)
             self.view.get_result_section().show_analysis_summary("\n".join(issues))
 
     def _format_issues_for_info_output(self, results: list[FileAnalysisResult]) -> list[str]:
