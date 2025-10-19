@@ -28,6 +28,7 @@ cd static-code-analysis
 chmod +x setup-venv.sh
 chmod +x build.sh
 ./setup-venv.sh
+./build.sh
 ```
 
 #### Option 2: Executable (Windows)
