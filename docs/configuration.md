@@ -20,14 +20,20 @@ Specify files that should not be present in the repository:
     "*.doc",
     "*.exe",
     "*.dll",
-    "*.msi"
+    "*.msi",
+    "*.mp4",
+    "*.mkv",
+    "*.avi",
+    "*.zip",
+    "*.tar",
+    "*.7z"
   ]
 }
 ```
 
 - Uses GitHub-flavored wildcards
 - Prevents certain file types from being committed
-- Common examples: Office documents, executables, compiled libraries
+- Common examples: Office documents, executables, compiled libraries, video files, archives
 
 ### Ignored Files
 
@@ -40,14 +46,20 @@ Files that should be excluded from static code analysis:
     "**/*.gitignore",
     "*.exe",
     "*.mp3",
-    "*.gif"
+    "*.wav",
+    "*.gif",
+    "*.ttf",
+    "*.png",
+    "*.jpg",
+    "*.ico",
+    "*.svg"
   ]
 }
 ```
 
 - Uses GitHub-flavored wildcards
 - These files won't be analyzed for code quality issues
-- Typical exclusions: documentation, binary files, configuration files
+- Typical exclusions: documentation, binary files, configuration files, media files, fonts
 
 ### File Encodings
 
@@ -58,6 +70,7 @@ Specify the expected encoding for different file types:
   "file_encodings": {
     "*.sql": "utf-16le",
     "*.cs": "utf-16le",
+    "*.java": "utf-8",
     "*.py": "utf-8",
     "*.js": "utf-8",
     "*.html": "utf-8"
@@ -67,7 +80,7 @@ Specify the expected encoding for different file types:
 
 - UTF-8 is the default encoding if not specified
 - SQL and C# files often use UTF-16LE
-- Python, JavaScript, and web files typically use UTF-8
+- Java, Python, JavaScript, and web files typically use UTF-8
 
 ### Standard Checks
 
@@ -97,10 +110,14 @@ File-type-specific checks with configurable parameters:
 {
   "specific_checks": {
     "*.sql": {
-      "line_length": null,
+      "line_length": {"max_line_length": 120},
       "trailing_whitespace": {"max_trailing_whitespaces": 20}
     },
     "*.cs": {
+      "line_length": {"max_line_length": 120},
+      "trailing_whitespace": {"max_trailing_whitespaces": 20}
+    },
+    "*.java": {
       "line_length": {"max_line_length": 120},
       "trailing_whitespace": {"max_trailing_whitespaces": 20}
     }
@@ -166,7 +183,7 @@ Here's a complete example configuration:
       "region_newline": null
     },
     "*.sql": {
-      "line_length": null,
+      "line_length": {"max_line_length": 120},
       "trailing_whitespace": {"max_trailing_whitespaces": 20}
     }
   }

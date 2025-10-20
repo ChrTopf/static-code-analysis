@@ -12,12 +12,16 @@ All checks must inherit from the abstract `Check` class:
 
 ```python
 from abc import abstractmethod, ABC
-from models.file_analysis_result import FileAnalysisResult
+from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 class Check(ABC):
     @abstractmethod
-    def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+    def parse_config(self, config_object: dict[str, object] | None):
+        pass
+
+    @abstractmethod
+    def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
         pass
 ```
 
@@ -30,18 +34,21 @@ Create a new file in the `src/checks/` directory:
 ```python
 # src/checks/my_new_check.py
 from checks.check import Check
-from models.file_analysis_result import FileAnalysisResult
 from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 class MyNewCheck(Check):
-    def __init__(self, settings=None):
-        # Initialize your check with optional settings
-        self.settings = settings or {}
+    def __init__(self):
+        # Initialize your check
+        self.settings = {}
 
-    def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+    def parse_config(self, config_object: dict[str, object] | None):
+        # Parse and store configuration settings
+        self.settings = config_object or {}
+
+    def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
         # Implementation goes here
-        pass
+        return []
 ```
 
 ### 2. Implement the Analysis Logic
@@ -49,10 +56,12 @@ class MyNewCheck(Check):
 The `execute_on_changed_file` method receives:
 
 - `changed_file`: Contains file information and changed lines
-- `result`: Object to store analysis issues
+
+And returns a list of `LineAnalysisIssue` objects.
 
 ```python
-def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+    issues = []
     for line in changed_file.changed_lines:
         # Analyze each changed line
         if self._violates_rule(line.content):
@@ -60,7 +69,8 @@ def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysis
                 line.number,
                 f"Issue found: {self._get_issue_description(line.content)}"
             )
-            result.issues.append(issue)
+            issues.append(issue)
+    return issues
 
 def _violates_rule(self, line_content: str) -> bool:
     # Your rule logic here
@@ -77,19 +87,25 @@ Support configuration parameters for flexibility:
 
 ```python
 class ConfigurableCheck(Check):
-    def __init__(self, settings=None):
-        self.settings = settings or {}
-        # Extract configuration with defaults
-        self.max_length = self.settings.get('max_length', 80)
-        self.severity = self.settings.get('severity', 'warning')
+    def __init__(self):
+        self.max_length = 80  # Default value
+        self.severity = 'warning'  # Default value
 
-    def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+    def parse_config(self, config_object: dict[str, object] | None):
+        if config_object:
+            # Extract configuration with defaults
+            self.max_length = config_object.get('max_length', 80)
+            self.severity = config_object.get('severity', 'warning')
+
+    def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+        issues = []
         for line in changed_file.changed_lines:
             if len(line.content) > self.max_length:
-                result.issues.append(LineAnalysisIssue(
+                issues.append(LineAnalysisIssue(
                     line.number,
                     f"Line exceeds {self.max_length} characters"
                 ))
+        return issues
 ```
 
 ### 4. Register the Check
@@ -139,27 +155,32 @@ Add your check to the configuration schema:
 # src/checks/no_print_statements.py
 import re
 from checks.check import Check
-from models.file_analysis_result import FileAnalysisResult
 from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 class NoPrintStatements(Check):
-    def __init__(self, settings=None):
-        self.settings = settings or {}
+    def __init__(self):
         # Match print() calls but not in comments
         self.print_pattern = re.compile(r'^\s*print\s*\(')
 
-    def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+    def parse_config(self, config_object: dict[str, object] | None):
+        # This check doesn't need configuration
+        pass
+
+    def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+        issues = []
         faulty_lines = [
             line for line in changed_file.changed_lines
             if self.print_pattern.search(line.content)
         ]
 
         for line in faulty_lines:
-            result.issues.append(LineAnalysisIssue(
+            issues.append(LineAnalysisIssue(
                 line.number,
                 "Remove print() statements before committing. Use logging instead."
             ))
+
+        return issues
 ```
 
 ### Example 2: Configurable Check
@@ -168,17 +189,20 @@ class NoPrintStatements(Check):
 # src/checks/function_complexity.py
 import re
 from checks.check import Check
-from models.file_analysis_result import FileAnalysisResult
 from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 class FunctionComplexity(Check):
-    def __init__(self, settings=None):
-        self.settings = settings or {}
-        self.max_complexity = self.settings.get('max_complexity', 10)
+    def __init__(self):
+        self.max_complexity = 10  # Default value
         self.function_pattern = re.compile(r'^\s*def\s+(\w+)\s*\(')
 
-    def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+    def parse_config(self, config_object: dict[str, object] | None):
+        if config_object:
+            self.max_complexity = config_object.get('max_complexity', 10)
+
+    def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+        issues = []
         current_function = None
         complexity = 0
 
@@ -187,7 +211,7 @@ class FunctionComplexity(Check):
             func_match = self.function_pattern.search(line.content)
             if func_match:
                 if current_function and complexity > self.max_complexity:
-                    result.issues.append(LineAnalysisIssue(
+                    issues.append(LineAnalysisIssue(
                         line.number - 1,  # Previous function
                         f"Function '{current_function}' has complexity {complexity}, "
                         f"maximum allowed is {self.max_complexity}"
@@ -198,6 +222,8 @@ class FunctionComplexity(Check):
                 # Count complexity indicators
                 if any(keyword in line.content for keyword in ['if', 'elif', 'for', 'while', 'except']):
                     complexity += 1
+
+        return issues
 ```
 
 ### Example 3: Multi-line Analysis
@@ -205,15 +231,19 @@ class FunctionComplexity(Check):
 ```python
 # src/checks/import_organization.py
 from checks.check import Check
-from models.file_analysis_result import FileAnalysisResult
 from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
 
 class ImportOrganization(Check):
-    def __init__(self, settings=None):
-        self.settings = settings or {}
+    def __init__(self):
+        pass
 
-    def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+    def parse_config(self, config_object: dict[str, object] | None):
+        # This check doesn't need configuration
+        pass
+
+    def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+        issues = []
         import_lines = []
 
         # Collect all import lines
@@ -222,17 +252,19 @@ class ImportOrganization(Check):
                 import_lines.append(line)
 
         if len(import_lines) < 2:
-            return
+            return issues
 
         # Check if imports are sorted
         import_texts = [line.content.strip() for line in import_lines]
         sorted_imports = sorted(import_texts)
 
         if import_texts != sorted_imports:
-            result.issues.append(LineAnalysisIssue(
+            issues.append(LineAnalysisIssue(
                 import_lines[0].number,
                 "Imports should be sorted alphabetically"
             ))
+
+        return issues
 ```
 
 ## Best Practices
@@ -240,29 +272,36 @@ class ImportOrganization(Check):
 ### Error Handling
 
 ```python
-def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+    issues = []
     try:
         # Your analysis logic
         pass
     except Exception as e:
         # Log error but don't fail the entire analysis
-        result.issues.append(LineAnalysisIssue(
+        issues.append(LineAnalysisIssue(
             1,
             f"Check failed: {str(e)}"
         ))
+    return issues
 ```
 
 ### Performance Considerations
 
 ```python
 class EfficientCheck(Check):
-    def __init__(self, settings=None):
+    def __init__(self):
         # Pre-compile regex patterns
         self.pattern = re.compile(r'your_pattern')
         # Cache expensive computations
         self._cache = {}
 
-    def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+    def parse_config(self, config_object: dict[str, object] | None):
+        # Handle configuration if needed
+        pass
+
+    def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+        issues = []
         # Process lines efficiently
         relevant_lines = [
             line for line in changed_file.changed_lines
@@ -272,21 +311,25 @@ class EfficientCheck(Check):
         for line in relevant_lines:
             # More expensive analysis only on filtered lines
             if self._detailed_check(line.content):
-                result.issues.append(LineAnalysisIssue(line.number, "Issue found"))
+                issues.append(LineAnalysisIssue(line.number, "Issue found"))
+
+        return issues
 ```
 
 ### Configuration Validation
 
 ```python
-def __init__(self, settings=None):
-    self.settings = settings or {}
+def __init__(self):
+    self.max_length = 80  # Default value
 
-    # Validate configuration
-    max_length = self.settings.get('max_length', 80)
-    if not isinstance(max_length, int) or max_length < 1:
-        raise ValueError("max_length must be a positive integer")
+def parse_config(self, config_object: dict[str, object] | None):
+    if config_object:
+        # Validate configuration
+        max_length = config_object.get('max_length', 80)
+        if not isinstance(max_length, int) or max_length < 1:
+            raise ValueError("max_length must be a positive integer")
 
-    self.max_length = max_length
+        self.max_length = max_length
 ```
 
 ## Testing Your Check
@@ -304,10 +347,10 @@ def __init__(self, settings=None):
 from checks.my_new_check import MyNewCheck
 from models.changed_line import ChangedLine
 from models.loaded_file import LoadedFile
-from models.file_analysis_result import FileAnalysisResult
 
 def test_my_check():
-    check = MyNewCheck({'max_length': 50})
+    check = MyNewCheck()
+    check.parse_config({'max_length': 50})
 
     # Create test data
     test_lines = [
@@ -315,14 +358,13 @@ def test_my_check():
         ChangedLine(2, "this is a very long line that exceeds the limit")
     ]
     test_file = LoadedFile("test.py", test_lines, [])
-    result = FileAnalysisResult("test.py")
 
     # Run check
-    check.execute_on_changed_file(test_file, result)
+    issues = check.execute_on_changed_file(test_file)
 
     # Verify results
-    assert len(result.issues) == 1
-    assert result.issues[0].line_number == 2
+    assert len(issues) == 1
+    assert issues[0].line_number == 2
 
 if __name__ == "__main__":
     test_my_check()
@@ -334,26 +376,32 @@ if __name__ == "__main__":
 ### File Extension Specific Logic
 
 ```python
-def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+    issues = []
     file_extension = changed_file.file_path.split('.')[-1].lower()
 
     if file_extension == 'py':
-        self._check_python_specific(changed_file, result)
+        issues.extend(self._check_python_specific(changed_file))
     elif file_extension == 'js':
-        self._check_javascript_specific(changed_file, result)
+        issues.extend(self._check_javascript_specific(changed_file))
+
+    return issues
 ```
 
 ### Line Context Analysis
 
 ```python
-def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
+def execute_on_changed_file(self, changed_file: LoadedFile) -> list[LineAnalysisIssue]:
+    issues = []
     for i, line in enumerate(changed_file.changed_lines):
         # Get surrounding context
         prev_line = changed_file.changed_lines[i-1] if i > 0 else None
         next_line = changed_file.changed_lines[i+1] if i < len(changed_file.changed_lines)-1 else None
 
         if self._check_with_context(line, prev_line, next_line):
-            result.issues.append(LineAnalysisIssue(line.number, "Context issue"))
+            issues.append(LineAnalysisIssue(line.number, "Context issue"))
+
+    return issues
 ```
 
 ## Troubleshooting

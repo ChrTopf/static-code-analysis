@@ -126,9 +126,9 @@ The application follows a clean architecture with separation of concerns:
 ### Data Flow
 
 1. **Initialization**: Load configuration and parse command line arguments
-2. **Git Analysis**: Determine changed files between branches
+2. **Git Analysis**: Determine changed files between branches (with support for remote branch checkout)
 3. **File Loading**: Load and parse changed files with proper encoding
-4. **Check Execution**: Run configured checks on changed lines
+4. **Check Execution**: Run configured checks on changed lines (with improved error handling and encoding support)
 5. **Result Compilation**: Aggregate results and format output
 
 ## Development Guidelines

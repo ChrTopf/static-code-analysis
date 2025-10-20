@@ -115,7 +115,8 @@ class MainModel:
             self.analysis_complete_adapter.on_signal_received(result)
             
     def __update_repository_info(self, repository_path: str):
-        branches = [b.strip() for b in self.git_assistant.get_local_branches() if b.strip()]
+        branches = [b.strip() for b in self.git_assistant.get_remote_branches() if not b.__contains__("HEAD")]
+        branches += [b.strip() for b in self.git_assistant.get_local_branches()]
         self.repository_info = RepositoryInfo(
             path=repository_path,
             branches=branches
