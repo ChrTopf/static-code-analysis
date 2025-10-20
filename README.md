@@ -3,10 +3,10 @@
 A Python-based tool that analyzes changes between Git branches according to Clean Code principles and generates actionable TODO lists for Pull Request reviews. The tool supports both GUI and headless modes, making it suitable for both interactive use and CI/CD integration.
 
 | Property      | Value                                                                             |
-| ------------- |-----------------------------------------------------------------------------------|
+| ------------- | --------------------------------------------------------------------------------- |
 | Author        | ChrTopf                                                                           |
 | Sponsor       | TheHolyException                                                                  |
-| Last Modified | 19.10.2025                                                                        |
+| Last Modified | 20.10.2025                                                                        |
 | Tags          | `Git`<br/>`Pull Request`<br/>`Clean Code`<br/>`Static Code Analysis`<br/>`Python` |
 
 ## Preview
@@ -167,6 +167,7 @@ This project is maintained by ChrTopf and sponsored by TheHolyException.
 
 ## Version History
 
-| Date/Version | Changes                  |
-| ------------ | ------------------------ |
-| 19.10.2025   | Initial version released |
+| Date/Version | Changes                                                                                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 19.10.2025   | Initial version released                                                                                                                                       |
+| 20.10.2025   | - Fixed analysis config parsing issue<br/>- Fixed file encoding issues<br/>- Fixed empty diff issue<br/>- Added automatic checkout feature for remote branches |
