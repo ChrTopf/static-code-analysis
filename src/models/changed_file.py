@@ -4,9 +4,9 @@ from pathspec import PathSpec
 
 
 class ChangedFile:
-    def __init__(self, file_path: str, numbers_of_added_lines: list[int], check_entire_file: bool):
+    def __init__(self, file_path: str, diff: bytes | str | None, check_entire_file: bool):
         self.file_path = file_path
-        self.numbers_of_added_lines = numbers_of_added_lines
+        self.diff: bytes | str | None = diff
         self.check_entire_file = check_entire_file
 
     def get_file_extension(self) -> str:

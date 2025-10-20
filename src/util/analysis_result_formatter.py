@@ -16,9 +16,13 @@ class AnalysisResultFormatter:
 
     @staticmethod
     def __get_result_text_for_issues(results: list[FileAnalysisResult]) -> str:
-        lines = [f"❌ Found {len(results)} issues in changed code"]
+        lines = [f"❌ Found {AnalysisResultFormatter.__count_issues(results)} issues in changed code"]
         lines += AnalysisResultFormatter.__format_issues_for_info_output(results)
         return "\n".join(lines)
+    
+    @staticmethod
+    def __count_issues(results: list[FileAnalysisResult]) -> int:
+        return sum([len(result.issues) for result in results])
 
     @staticmethod
     def __format_issues_for_info_output(results: list[FileAnalysisResult]) -> list[str]:

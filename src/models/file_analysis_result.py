@@ -10,5 +10,4 @@ class FileAnalysisResult:
         return len(self.issues) > 0
     
     def get_prettied_issues(self) -> list[str]:
-        return [f"Line: {issue.line_number} Issue: {issue.issue_description}" for issue in self.issues]  
-        
+        return [f"Line: {issue.line_number} Issue: {issue.issue_description}" for issue in self.issues]
