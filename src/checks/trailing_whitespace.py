@@ -5,8 +5,11 @@ from models.loaded_file import LoadedFile
 
 
 class TrailingWhitespace(Check):
-    def __init__(self, max_trailing_whitespaces: int):
-        self.max_trailing_whitespaces = max_trailing_whitespaces
+    def __init__(self):
+        self.max_trailing_whitespaces = None
+
+    def parse_config(self, config_object: dict[str, object]):
+        self.max_trailing_whitespaces = config_object["max_trailing_whitespaces"]
 
     def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
         faulty_lines = [

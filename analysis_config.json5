@@ -59,7 +59,7 @@
   /* The checks to be performed for explicit files. GitHub flavored wildcards are possible here. */
   "specific_checks": {
     "*.sql": {
-      "line_length":  null,
+      "line_length":  {max_line_length: 120},
       "trailing_whitespace": {max_trailing_whitespaces: 20},
     },
     "*.cs": {

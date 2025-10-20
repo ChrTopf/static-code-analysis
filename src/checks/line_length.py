@@ -5,8 +5,11 @@ from models.loaded_file import LoadedFile
 
 
 class LineLength(Check):
-    def __int__(self, max_line_length: int):
-        self.max_line_length = max_line_length
+    def __int__(self):
+        self.max_line_length = None
+
+    def parse_config(self, config_object: dict[str, object] | None):
+        self.max_line_length = config_object["max_line_length"]
 
     def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
         too_long_lines = [line for line in changed_file.changed_lines if len(line.content) > self.max_line_length]

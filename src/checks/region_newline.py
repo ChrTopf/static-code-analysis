@@ -6,6 +6,9 @@ from models.loaded_file import LoadedFile
 
 
 class RegionNewline(Check):
+    def parse_config(self, config_object: dict[str, object] | None):
+        pass
+
     def execute_on_changed_file(self, changed_file: LoadedFile, result: FileAnalysisResult):
         for changed_line in changed_file.changed_lines:
             self.__perform_check_for_line(changed_file, changed_line, result)
