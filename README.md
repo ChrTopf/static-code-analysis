@@ -6,7 +6,7 @@ A Python-based tool that analyzes changes between Git branches according to Clea
 | ------------- | --------------------------------------------------------------------------------- |
 | Author        | ChrTopf                                                                           |
 | Sponsor       | TheHolyException                                                                  |
-| Last Modified | 20.10.2025                                                                        |
+| Last Modified | 27.10.2025                                                                        |
 | Tags          | `Git`<br/>`Pull Request`<br/>`Clean Code`<br/>`Static Code Analysis`<br/>`Python` |
 
 ## Preview
@@ -171,3 +171,4 @@ This project is maintained by ChrTopf and sponsored by TheHolyException.
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 19.10.2025   | Initial version released                                                                                                                                       |
 | 20.10.2025   | - Fixed analysis config parsing issue<br/>- Fixed file encoding issues<br/>- Fixed empty diff issue<br/>- Added automatic checkout feature for remote branches |
+| 27.10.2025   | - Added feature for analyzing entire repository by selecting same source and target branch                                                                     |
