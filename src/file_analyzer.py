@@ -57,8 +57,11 @@ class FileAnalyzer:
     
     def __load_changed_file(self, changed_file: ChangedFile, file_encoding: str) -> LoadedFile:
         all_lines = self.__read_changed_file(changed_file.file_path, file_encoding)
-        numbers_of_added_lines = self.__get_numbers_of_changed_lines(changed_file.diff, file_encoding)
-        changed_lines = self.__filter_changed_lines(all_lines, numbers_of_added_lines)
+        if changed_file.check_entire_file and changed_file.diff is None:
+            changed_lines = [ChangedLine(i, line) for i, line in enumerate(all_lines)]
+        else:
+            numbers_of_added_lines = self.__get_numbers_of_changed_lines(changed_file.diff, file_encoding)
+            changed_lines = self.__filter_changed_lines(all_lines, numbers_of_added_lines)
         return LoadedFile(changed_file, file_encoding, all_lines, changed_lines)
     
     def __read_changed_file(self, file_path: str, file_encoding: str) -> list[str]:

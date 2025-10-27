@@ -37,6 +37,17 @@ class Analysis:
     
     def __load_changed_files(self, analysis_arguments: AnalysisArguments) -> list[ChangedFile]:
         self.__logger.info("Loading changed files...")
+        if analysis_arguments.source_branch == analysis_arguments.destination_branch:
+            return self.__load_all_files_in_directory(analysis_arguments.repository_directory)
+        else:
+            return self.__load_changed_files_from_diff(analysis_arguments)
+        
+    def __load_all_files_in_directory(self, path: str) -> list[ChangedFile]:
+        return [ChangedFile(os.path.join(dp, f), None, True) 
+                for dp, dn, filenames in os.walk(path) for f in filenames 
+                if not dp.__contains__(".git")]
+    
+    def __load_changed_files_from_diff(self, analysis_arguments: AnalysisArguments) -> list[ChangedFile]:
         self.__git_assistant.reset_repository_directory(analysis_arguments.repository_directory)
         return self.__git_assistant.get_changes_of_pull_request(
             analysis_arguments.source_branch,
