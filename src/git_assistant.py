@@ -7,7 +7,7 @@ from models.changed_file import ChangedFile
 
 class GitAssistant:
     def __init__(self, repo_directory: str):
-        self.repo = None
+        self.repo: Repo | None = None
         if not self.__try_set_git_repository(repo_directory):
             found_repo_directory = self.__find_git_directory()
             self.__try_set_git_repository(found_repo_directory)
@@ -53,15 +53,28 @@ class GitAssistant:
     def __update_local_branch(self, branch_name: str):
         if branch_name.startswith("origin/"):
             local_branch_name = self.__get_local_branch_for_remote_branch(branch_name)
-            head = self.repo.create_head(local_branch_name, branch_name)
-            head.checkout()
+            if not self.__local_branch_exists(local_branch_name):
+                self.__checkout_remote_branch(branch_name, local_branch_name)
+            else:
+                self.__checkout_local_branch(local_branch_name)
         else:
-            self.repo.git.checkout(branch_name)
+            self.__checkout_local_branch(branch_name)
         origin = self.repo.remotes.origin
         origin.fetch()
-        
+
     def __get_local_branch_for_remote_branch(self, branch_name: str) -> str:
         return branch_name.replace("origin/", "")
+        
+    def __local_branch_exists(self, branch_name: str) -> bool:
+        return branch_name in [branch.name for branch in self.repo.branches]
+
+    def __checkout_remote_branch(self, remote_branch_name: str, local_branch_name: str):
+        # Create new local branch tracking the remote branch
+        head = self.repo.create_head(local_branch_name, remote_branch_name)
+        head.checkout()
+
+    def __checkout_local_branch(self, branch_name: str):
+        self.repo.git.checkout(branch_name)
         
     def __get_commit_of_merge_base(self, source_branch: str, target_branch: str):
         merge_base = self.repo.merge_base(source_branch, target_branch)
