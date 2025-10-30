@@ -95,7 +95,14 @@ class GitAssistant:
     def __parse_diff_to_changed_file(self, diff_metadata: Diff, changed_lines_only: bool) -> ChangedFile:
         file_path = self.repo.working_dir + os.path.sep + diff_metadata.b_path
         check_entire_file = (not changed_lines_only and not diff_metadata.renamed_file) or diff_metadata.new_file
-        return ChangedFile(file_path, diff_metadata.diff, check_entire_file)
+        diff = self.__decode_diff(diff_metadata.diff)
+        return ChangedFile(file_path, diff, check_entire_file)
+    
+    def __decode_diff(self, diff: bytes | None) -> str | None:
+        if diff is None:
+            return None
+        else:
+            return diff.decode(encoding="utf-8", errors="strict")
 
     def __try_set_git_repository(self, repo_directory: str) -> bool:
         try:

@@ -60,7 +60,7 @@ class FileAnalyzer:
         if changed_file.check_entire_file and changed_file.diff is None:
             changed_lines = [ChangedLine(i, line) for i, line in enumerate(all_lines)]
         else:
-            numbers_of_added_lines = self.__get_numbers_of_changed_lines(changed_file.diff, file_encoding)
+            numbers_of_added_lines = self.__get_numbers_of_changed_lines(changed_file.diff)
             changed_lines = self.__filter_changed_lines(all_lines, numbers_of_added_lines)
         return LoadedFile(changed_file, file_encoding, all_lines, changed_lines)
     
@@ -68,11 +68,16 @@ class FileAnalyzer:
         with open(file_path, "r", encoding=file_encoding, errors="replace") as fp:
             return fp.readlines()
         
-    def __get_numbers_of_changed_lines(self, diff: bytes | str | None, file_encoding: str) -> list[int]:
+    def __get_numbers_of_changed_lines(self, diff_text: str | None) -> list[int]:
         changed_lines = []
-        if diff is None:
+        if diff_text is None:
             return changed_lines
-        diff_text = diff.decode(file_encoding, errors="replace") if isinstance(diff, bytes) else diff
+        if diff_text.startswith("Binary files") and diff_text.endswith("differ\n"):
+            raise AnalysisException(f"Could not determine diff of binary file. Output from git: '{diff_text}'")
+        if not diff_text.startswith("@@") and diff_text.startswith("Binary files") and diff_text.endswith("differ\n"):
+            raise UnicodeDecodeError("utf-8", diff_text.encode("utf-8"), 0, 2, 
+                                     "Could not properly decode output of 'git diff-tree'. The decoded string does "
+                                     "not start with '@@'.")
         # Parse hunk headers to get line numbers
         # Format: @@ -old_start,old_count +new_start,new_count @@
         hunk_pattern = r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@'
