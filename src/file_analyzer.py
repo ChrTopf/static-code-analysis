@@ -59,7 +59,7 @@ class FileAnalyzer:
     def __load_changed_file(self, changed_file: ChangedFile, file_encoding: str) -> LoadedFile:
         all_lines = self.__read_changed_file(changed_file.file_path, file_encoding)
         if changed_file.check_entire_file and changed_file.diff is None:
-            changed_lines = [ChangedLine(i, line) for i, line in enumerate(all_lines)]
+            changed_lines = [ChangedLine(i, line) for i, line in enumerate(all_lines, 1)]
         else:
             numbers_of_added_lines = self.__get_numbers_of_changed_lines(changed_file.diff)
             changed_lines = self.__filter_changed_lines(all_lines, numbers_of_added_lines)
@@ -104,10 +104,10 @@ class FileAnalyzer:
             elif next_line.startswith(' '):
                 # Context line (unchanged)
                 return current_line_number + 1
-        return None
+        return current_line_number
             
     def __filter_changed_lines(self, lines: list[str], numbers_of_added_lines: list[int]) -> list[ChangedLine]:
-        return [ChangedLine(i, line) for i, line in enumerate(lines) if i in numbers_of_added_lines]
+        return [ChangedLine(i, line) for i, line in enumerate(lines, 1) if i in numbers_of_added_lines]
     
     def __analyze_loaded_file(self, loaded_file: LoadedFile) -> FileAnalysisResult:
         checks = self.__load_checks_for_file(loaded_file)
