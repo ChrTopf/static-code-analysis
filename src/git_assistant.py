@@ -1,5 +1,6 @@
 import os
 
+import git
 from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError
 
 from models.changed_file import ChangedFile
@@ -33,8 +34,8 @@ class GitAssistant:
         if self.repo is None:
             return []
         self.__check_for_uncommitted_changes()
-        self.__update_local_branch(target_branch)
-        self.__update_local_branch(source_branch)
+        self.__update_branch(target_branch)
+        self.__update_branch(source_branch)
         local_source_branch = self.__get_local_branch_for_remote_branch(source_branch)
         local_target_branch = self.__get_local_branch_for_remote_branch(target_branch)
         diff = self.__get_diff_of_pull_request(local_source_branch, local_target_branch)
@@ -50,17 +51,16 @@ class GitAssistant:
                 raise Exception("Unstaged changes detected. Please commit your changes first!")
             raise Exception("Uncommitted changes detected. Please commit your changes first!")
         
-    def __update_local_branch(self, branch_name: str):
+    def __update_branch(self, branch_name: str):
         if branch_name.startswith("origin/"):
             local_branch_name = self.__get_local_branch_for_remote_branch(branch_name)
             if not self.__local_branch_exists(local_branch_name):
                 self.__checkout_remote_branch(branch_name, local_branch_name)
             else:
-                self.__checkout_local_branch(local_branch_name)
+                self.repo.git.checkout(local_branch_name)
         else:
-            self.__checkout_local_branch(branch_name)
-        origin = self.repo.remotes.origin
-        origin.fetch()
+            self.repo.git.checkout(branch_name)
+        self.__pull_current_branch()
 
     def __get_local_branch_for_remote_branch(self, branch_name: str) -> str:
         return branch_name.replace("origin/", "")
@@ -72,9 +72,10 @@ class GitAssistant:
         # Create new local branch tracking the remote branch
         head = self.repo.create_head(local_branch_name, remote_branch_name)
         head.checkout()
-
-    def __checkout_local_branch(self, branch_name: str):
-        self.repo.git.checkout(branch_name)
+        
+    def __pull_current_branch(self):
+        origin: git.Remote = self.repo.remotes.origin
+        origin.pull()
         
     def __get_commit_of_merge_base(self, source_branch: str, target_branch: str):
         merge_base = self.repo.merge_base(source_branch, target_branch)
