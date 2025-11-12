@@ -79,8 +79,7 @@
     },
     "*.cs": {
       "line_length": {max_line_length: 120},
-      "trailing_whitespace": {max_trailing_whitespaces: 20},
-      "csharp_method_length": {max_lines: 25}
+      "trailing_whitespace": {max_trailing_whitespaces: 20}
     },
     "*.java": {
       "line_length": {max_line_length: 120},
