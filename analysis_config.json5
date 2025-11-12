@@ -48,7 +48,8 @@
     "*.jpg",
     "*.ico",
     "*.svg",
-    "*.gif"
+    "*.gif",
+    "*.jar"
   ],
   /* Explicitly define the file encoding for specific files or file types. GitHub flavored wildcards are possible here.
   (UTF-8 is chosen as a default encoding for every file) */

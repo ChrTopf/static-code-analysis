@@ -1,13 +1,13 @@
 import os
 
-from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError
+from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError, Remote
 
 from models.changed_file import ChangedFile
 
 
 class GitAssistant:
     def __init__(self, repo_directory: str):
-        self.repo = None
+        self.repo: Repo | None = None
         if not self.__try_set_git_repository(repo_directory):
             found_repo_directory = self.__find_git_directory()
             self.__try_set_git_repository(found_repo_directory)
@@ -33,8 +33,8 @@ class GitAssistant:
         if self.repo is None:
             return []
         self.__check_for_uncommitted_changes()
-        self.__update_local_branch(target_branch)
-        self.__update_local_branch(source_branch)
+        self.__update_branch(target_branch)
+        self.__update_branch(source_branch)
         local_source_branch = self.__get_local_branch_for_remote_branch(source_branch)
         local_target_branch = self.__get_local_branch_for_remote_branch(target_branch)
         diff = self.__get_diff_of_pull_request(local_source_branch, local_target_branch)
@@ -50,18 +50,32 @@ class GitAssistant:
                 raise Exception("Unstaged changes detected. Please commit your changes first!")
             raise Exception("Uncommitted changes detected. Please commit your changes first!")
         
-    def __update_local_branch(self, branch_name: str):
+    def __update_branch(self, branch_name: str):
         if branch_name.startswith("origin/"):
             local_branch_name = self.__get_local_branch_for_remote_branch(branch_name)
-            head = self.repo.create_head(local_branch_name, branch_name)
-            head.checkout()
+            if not self.__local_branch_exists(local_branch_name):
+                self.__checkout_remote_branch(branch_name, local_branch_name)
+            else:
+                self.repo.git.checkout(local_branch_name)
         else:
             self.repo.git.checkout(branch_name)
-        origin = self.repo.remotes.origin
-        origin.fetch()
-        
+        self.__pull_current_branch()
+
     def __get_local_branch_for_remote_branch(self, branch_name: str) -> str:
         return branch_name.replace("origin/", "")
+        
+    def __local_branch_exists(self, branch_name: str) -> bool:
+        return branch_name in [branch.name for branch in self.repo.branches]
+
+    def __checkout_remote_branch(self, remote_branch_name: str, local_branch_name: str):
+        # Create new local branch tracking the remote branch
+        head = self.repo.create_head(local_branch_name, remote_branch_name)
+        head.checkout()
+        
+    def __pull_current_branch(self):
+        origin: Remote = self.repo.remotes.origin
+        current_branch = self.repo.active_branch.name
+        origin.pull(current_branch)
         
     def __get_commit_of_merge_base(self, source_branch: str, target_branch: str):
         merge_base = self.repo.merge_base(source_branch, target_branch)
@@ -70,7 +84,7 @@ class GitAssistant:
     def __get_diff_of_pull_request(self, source_branch: str, target_branch: str):
         commit = self.__get_commit_of_merge_base(source_branch, target_branch)
         source_branch_head = self.repo.heads[source_branch].commit
-        return commit.diff(source_branch_head, create_patch=True)
+        return commit.diff(source_branch_head, create_patch=True, textconv=True)
         
     def __get_changed_files_from_diff(self, diff: DiffIndex[Diff], changed_lines_only: bool) -> list[ChangedFile]:
         changes = []
@@ -82,7 +96,14 @@ class GitAssistant:
     def __parse_diff_to_changed_file(self, diff_metadata: Diff, changed_lines_only: bool) -> ChangedFile:
         file_path = self.repo.working_dir + os.path.sep + diff_metadata.b_path
         check_entire_file = (not changed_lines_only and not diff_metadata.renamed_file) or diff_metadata.new_file
-        return ChangedFile(file_path, diff_metadata.diff, check_entire_file)
+        diff = self.__decode_diff(diff_metadata.diff)
+        return ChangedFile(file_path, diff, check_entire_file)
+    
+    def __decode_diff(self, diff: bytes | None) -> str | None:
+        if diff is None:
+            return None
+        else:
+            return diff.decode(encoding="utf-8", errors="strict")
 
     def __try_set_git_repository(self, repo_directory: str) -> bool:
         try:

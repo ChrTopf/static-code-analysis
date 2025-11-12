@@ -1,26 +1,25 @@
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
+    QVBoxLayout, QHBoxLayout,
     QPushButton, QCheckBox
 )
 
-from gui.themeable import Themeable
+from gui.themeablewidget import ThemeableWidget
 from gui.view.repository_section import RepositorySection
 from gui.view.result_section import ResultSection
 
 
-class MainView(QWidget, Themeable):
+class MainView(ThemeableWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Static Code Analysis")
         self.setGeometry(100, 100, 500, 400)
-        self.is_dark_mode = True
         self.theme_toggle = None
         self.repository_section: RepositorySection = None
         self.run_button = None
         self.result_section: ResultSection = None
         self.__init_ui()
-        self.apply_theme(self.__get_dark_theme_variables())
+        self.repaint()
         
     def get_repository_section(self) -> RepositorySection:
         return self.repository_section
@@ -66,7 +65,7 @@ class MainView(QWidget, Themeable):
 
         # Theme toggle
         self.theme_toggle = QCheckBox("Dark Mode")
-        self.theme_toggle.setChecked(self.is_dark_mode)
+        self.theme_toggle.setChecked(self._is_dark_mode)
         self.theme_toggle.stateChanged.connect(self.__toggle_theme)
         
         title_layout.addStretch()
@@ -75,6 +74,12 @@ class MainView(QWidget, Themeable):
     
     def __get_title_style(self) -> str:
         return """
+            #main_layout {
+                background-color: $body-bg-dark;
+                color: $dark;
+                font-family: Arial, sans-serif;
+            }
+        
             #title {
                 color: $primary;
                 padding: 4px 0;
@@ -117,108 +122,8 @@ class MainView(QWidget, Themeable):
         self.result_section.log(message, level)
     
     def __toggle_theme(self):
-        """Toggle between light and dark mode"""
-        self.is_dark_mode = self.theme_toggle.isChecked()
-        if self.is_dark_mode:
-            self.apply_theme(self.__get_dark_theme_variables())
-        else:
-            self.apply_theme(self.__get_light_theme_variables())
+        self.apply_theme(self.theme_toggle.isChecked())
+            
+    def get_stylesheet(self) -> str:
+        return self.__get_title_style() + "\n" + self.__get_run_button_style()
     
-    def apply_theme(self, variables: dict[str, str]):
-        style = self.__get_default_style() + "\n" + self.__get_title_style() + "\n" + self.__get_run_button_style()
-        self.setStyleSheet(self._replace_theme_variables(variables, style))
-        self.repository_section.apply_theme(variables)
-        self.result_section.apply_theme(variables)
-        
-    def __get_default_style(self):
-        """Get dark theme stylesheet"""
-        return """
-            #main_layout {
-                background-color: $body-bg-dark;
-            }
-        
-            QWidget {
-                color: $dark;
-                font-family: Arial, sans-serif;
-            }
-            
-            QCheckBox {
-                color: $dark;
-                font-weight: bold;
-            }
-            
-            QCheckBox::indicator {
-                width: 18px;
-                height: 18px;
-                border: 2px solid $dark;
-                border-radius: 3px;
-                background-color: $body-bg-light;
-            }
-            
-            QCheckBox::indicator:checked {
-                background-color: $primary;
-                border-color: $primary;
-            }
-            
-            QCheckBox::indicator:checked:before {
-                color: $dark;
-                font-weight: bold;
-            }
-            
-            QSplitter::handle {
-                background-color: $body-bg;
-                height: 3px;
-            }
-            
-            QSplitter::handle:hover {
-                background-color: $secondary;
-            }
-            
-            QTabWidget::pane {
-                border: 1px solid $body-bg-light;
-                border-radius: 4px;
-                background-color: $body-bg;
-            }
-            
-            QTabBar::tab {
-                background-color: $body-bg-light;
-                color: $dark;
-                padding: 6px 12px;
-                margin-right: 2px;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
-            }
-            
-            QTabBar::tab:selected {
-                background-color: $primary;
-                color: $dark;
-            }
-            
-            QTabBar::tab:hover {
-                background-color: $secondary;
-            }
-        """
-    
-    def __get_dark_theme_variables(self) -> dict[str, str]:
-        return {
-            "$primary": "#9e0000",
-            "$secondary": "#884600",
-            "$success": "#00c100",
-            "$light": "#000000",
-            "$dark": "#e1e1e1",
-            "$body-bg-light": "#262626",
-            "$body-bg-dark": "#101010",
-            "$body-bg": "#1a1a1a"
-        }
-    
-    def __get_light_theme_variables(self) -> dict[str, str]:
-        return {
-            "$primary": "#ea0000",
-            "$secondary": "#ffa115",
-            "$success": "#00c100",
-            "$light": "#ffffff",
-            "$dark": "#000000",
-            "$body-bg-light": "#ffffff",
-            "$body-bg-dark": "#e0e0e0",
-            "$body-bg": "#fefefe"
-        }

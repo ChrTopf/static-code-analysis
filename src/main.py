@@ -42,6 +42,7 @@ class StaticCodeAnalysisApp:
         self.controller.register_commands()
         self.controller.register_subscriptions()
         self.view.show()
+        self.view.repaint()
         return self.app.exec_()
 
 if __name__ == "__main__":

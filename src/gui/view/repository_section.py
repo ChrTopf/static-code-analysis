@@ -1,11 +1,11 @@
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QComboBox, QCheckBox
 
-from gui.themeable import Themeable
+from gui.themeablewidget import ThemeableWidget
 from models.repository_info import RepositoryInfo
 
 
-class RepositorySection(QFrame, Themeable):
+class RepositorySection(QFrame, ThemeableWidget):
     def __init__(self):
         super().__init__()
         self.dir_button = None
@@ -33,7 +33,7 @@ class RepositorySection(QFrame, Themeable):
 
         self.setLayout(repo_layout)
         
-    def __get_style(self) -> str:
+    def get_stylesheet(self) -> str:
         return """
             #section_frame {
                 background-color: $body-bg;
@@ -177,10 +177,7 @@ class RepositorySection(QFrame, Themeable):
         self.dir_label.setText(repository_path)
 
     def update_repository_info(self, repo_info: RepositoryInfo):
-        """Update UI with repository information"""
         self.dir_label.setText(repo_info.path)
-
-        # Update branch dropdowns
         self.source_branch.clear()
         self.source_branch.addItems(repo_info.branches)
         self.dest_branch.clear()
@@ -198,6 +195,4 @@ class RepositorySection(QFrame, Themeable):
             if remote_main in repo_info.branches:
                 self.dest_branch.setCurrentText(branch)
                 return
-
-    def apply_theme(self, theme_variables: dict[str, str]) -> None:
-        self.setStyleSheet(self._replace_theme_variables(theme_variables, self.__get_style()))
+    

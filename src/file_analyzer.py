@@ -16,6 +16,7 @@ class FileAnalyzer:
         self.analysis_config = analysis_config
         self.check_factory: CheckFactory = CheckFactory(analysis_config)
         self.repository_directory = repository_directory
+        self.hunk_pattern = r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@'
     
     def analyze_changed_file(self, changed_file: ChangedFile) -> FileAnalysisResult:
         self.__check_file_exclusion(changed_file)
@@ -57,46 +58,56 @@ class FileAnalyzer:
     
     def __load_changed_file(self, changed_file: ChangedFile, file_encoding: str) -> LoadedFile:
         all_lines = self.__read_changed_file(changed_file.file_path, file_encoding)
-        numbers_of_added_lines = self.__get_numbers_of_changed_lines(changed_file.diff, file_encoding)
-        changed_lines = self.__filter_changed_lines(all_lines, numbers_of_added_lines)
+        if changed_file.check_entire_file and changed_file.diff is None:
+            changed_lines = [ChangedLine(i, line) for i, line in enumerate(all_lines, 1)]
+        else:
+            numbers_of_added_lines = self.__get_numbers_of_changed_lines(changed_file.diff)
+            changed_lines = self.__filter_changed_lines(all_lines, numbers_of_added_lines)
         return LoadedFile(changed_file, file_encoding, all_lines, changed_lines)
     
     def __read_changed_file(self, file_path: str, file_encoding: str) -> list[str]:
         with open(file_path, "r", encoding=file_encoding, errors="replace") as fp:
             return fp.readlines()
         
-    def __get_numbers_of_changed_lines(self, diff: bytes | str | None, file_encoding: str) -> list[int]:
-        changed_lines = []
-        if diff is None:
-            return changed_lines
-        diff_text = diff.decode(file_encoding, errors="replace") if isinstance(diff, bytes) else diff
-        # Parse hunk headers to get line numbers
-        # Format: @@ -old_start,old_count +new_start,new_count @@
-        hunk_pattern = r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@'
-
+    def __get_numbers_of_changed_lines(self, diff_text: str | None) -> list[int]:
+        if diff_text is None:
+            return []
+        if diff_text.startswith("Binary files") and diff_text.endswith("differ\n"):
+            raise AnalysisException(f"Could not determine diff of binary file. Output from git: '{diff_text}'")
+        if not diff_text.startswith("@@") and diff_text.startswith("Binary files") and diff_text.endswith("differ\n"):
+            raise UnicodeDecodeError("utf-8", diff_text.encode("utf-8"), 0, 2, 
+                                     "Could not properly decode output of 'git diff-tree'. The decoded string does "
+                                     "not start with '@@'.")
+        return self.__parse_diff_to_changed_line_numbers(diff_text)
+    
+    def __parse_diff_to_changed_line_numbers(self, diff_text: str) -> list[int]:
         lines = diff_text.split('\n')
+        changed_lines = []
         current_line_num = None
-
         for line in lines:
-            hunk_match = re.match(hunk_pattern, line)
-            if hunk_match:
-                # Start of a new hunk
-                current_line_num = int(hunk_match.group(3))  # new file line start
-            elif current_line_num is not None:
-                if line.startswith('+') and not line.startswith('+++'):
-                    # Added line
-                    changed_lines.append(current_line_num)
-                    current_line_num += 1
-                elif line.startswith('-') and not line.startswith('---'):
-                    # Deleted line (don't increment line number)
-                    pass
-                elif line.startswith(' '):
-                    # Context line (unchanged)
-                    current_line_num += 1
+            current_line_num = self.__process_next_line(current_line_num, line, changed_lines)
         return changed_lines
+    
+    def __process_next_line(self, current_line_number: int, next_line: str, changed_lines: list[int]) -> int | None:
+        hunk_match = re.match(self.hunk_pattern, next_line)
+        if hunk_match:
+            # reset line number when new hunk was found
+            return int(hunk_match.group(3))
+        elif current_line_number is not None:
+            if next_line.startswith('+') and not next_line.startswith('+++'):
+                # Added line
+                changed_lines.append(current_line_number)
+                return current_line_number + 1
+            elif next_line.startswith('-') and not next_line.startswith('---'):
+                # Deleted line (don't increment line number)
+                return current_line_number
+            elif next_line.startswith(' '):
+                # Context line (unchanged)
+                return current_line_number + 1
+        return current_line_number
             
     def __filter_changed_lines(self, lines: list[str], numbers_of_added_lines: list[int]) -> list[ChangedLine]:
-        return [ChangedLine(i, line) for i, line in enumerate(lines) if i in numbers_of_added_lines]
+        return [ChangedLine(i, line) for i, line in enumerate(lines, 1) if i in numbers_of_added_lines]
     
     def __analyze_loaded_file(self, loaded_file: LoadedFile) -> FileAnalysisResult:
         checks = self.__load_checks_for_file(loaded_file)

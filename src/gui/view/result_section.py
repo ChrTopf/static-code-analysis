@@ -1,14 +1,14 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QTextCursor
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QTableWidget, QHeaderView, \
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QTableWidget, QHeaderView, \
     QTabWidget, QTableWidgetItem, QApplication
 
-from gui.themeable import Themeable
+from gui.themeablewidget import ThemeableWidget
 from models.file_analysis_result import FileAnalysisResult
 from util.analysis_result_formatter import AnalysisResultFormatter
 
 
-class ResultSection(QTabWidget, Themeable):
+class ResultSection(QTabWidget, ThemeableWidget):
     def __init__(self):
         super().__init__()
         self.copy_button = None
@@ -26,8 +26,8 @@ class ResultSection(QTabWidget, Themeable):
         self.addTab(self.issues_widget, "Issues Found")
         self.addTab(self.console_widget, "Console Output")
         
-    def __create_summary_tab(self) -> QWidget:
-        summary_widget = QWidget()
+    def __create_summary_tab(self) -> ThemeableWidget:
+        summary_widget = ThemeableWidget()
         summary_layout = QVBoxLayout()
         summary_layout.setContentsMargins(4, 4, 4, 4)
 
@@ -71,8 +71,8 @@ class ResultSection(QTabWidget, Themeable):
             }
         """
     
-    def __create_issues_tab(self) -> QWidget:
-        issues_widget = QWidget()
+    def __create_issues_tab(self) -> ThemeableWidget:
+        issues_widget = ThemeableWidget()
         issues_layout = QVBoxLayout()
         issues_layout.setContentsMargins(4, 4, 4, 4)
 
@@ -127,8 +127,8 @@ class ResultSection(QTabWidget, Themeable):
             }
         """
     
-    def __create_console_tab(self) -> QWidget:
-        console_widget = QWidget()
+    def __create_console_tab(self) -> ThemeableWidget:
+        console_widget = ThemeableWidget()
         console_layout = QVBoxLayout()
         console_layout.setContentsMargins(4, 4, 4, 4)
 
@@ -156,16 +156,10 @@ class ResultSection(QTabWidget, Themeable):
         clipboard = QApplication.clipboard()
         clipboard.setText(self.upper_output.toPlainText())
 
-    def apply_theme(self, theme_variables: dict[str, str]) -> None:
-        self.summary_widget.setStyleSheet(self._replace_theme_variables(
-            theme_variables, self.__get_summary_tab_style()
-        ))
-        self.issues_widget.setStyleSheet(self._replace_theme_variables(
-            theme_variables, self.__get_issues_tab_style()
-        ))
-        self.console_widget.setStyleSheet(self._replace_theme_variables(
-            theme_variables, self.__get_console_tab_style()
-        ))
+    def get_stylesheet(self) -> str:
+        return (self.__get_summary_tab_style() + "\n" + 
+                self.__get_issues_tab_style() + "\n" + 
+                self.__get_console_tab_style())
         
     def log(self, message: str, level: str = "INFO"):
         color_map = {
