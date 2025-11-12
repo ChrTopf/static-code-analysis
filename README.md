@@ -4,9 +4,9 @@ A Python-based tool that analyzes changes between Git branches according to Clea
 
 | Property      | Value                                                                             |
 | ------------- | --------------------------------------------------------------------------------- |
-| Author        | ChrTopf                                                                           |
+| Maintainer    | ChrTopf                                                                           |
 | Sponsor       | TheHolyException                                                                  |
-| Last Modified | 27.10.2025                                                                        |
+| Last Modified | 12.11.2025                                                                        |
 | Tags          | `Git`<br/>`Pull Request`<br/>`Clean Code`<br/>`Static Code Analysis`<br/>`Python` |
 
 ## Preview
@@ -167,8 +167,8 @@ This project is maintained by ChrTopf and sponsored by TheHolyException.
 
 ## Version History
 
-| Date/Version | Changes                                                                                                                                                        |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 19.10.2025   | Initial version released                                                                                                                                       |
-| 20.10.2025   | - Fixed analysis config parsing issue<br/>- Fixed file encoding issues<br/>- Fixed empty diff issue<br/>- Added automatic checkout feature for remote branches |
-| 27.10.2025   | - Added feature for analyzing entire repository by selecting same source and target branch                                                                     |
+| Date/Version | Changes                                                                                                                                                                                                                                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 19.10.2025   | Initial version released                                                                                                                                                                                                                                                                                               |
+| 20.10.2025   | - Fixed analysis config parsing issue<br/>- Fixed file encoding issues<br/>- Fixed empty diff issue<br/>- Added automatic checkout feature for remote branches                                                                                                                                                         |
+| 12.11.2025   | - Added feature for analyzing entire repository by selecting same source and target branch<br/>- fixed multiple bugs and errors when checking out, pulling and comparing remote branches<br/>- fixed errors with diff encodings<br/>- fixed line numbering for changed lines<br/>- fixed issues with broken dark style |
