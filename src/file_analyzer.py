@@ -59,25 +59,21 @@ class FileAnalyzer:
                                     f"'{file_encoding}'.")
     
     def __load_changed_file(self, changed_file: ChangedFile, file_encoding: str) -> LoadedFile:
-        all_lines = self.__read_changed_file(changed_file.file_path, file_encoding)
+        b_lines = self.__decode_bytes(changed_file.b_bytes, file_encoding)
         if changed_file.check_entire_file or changed_file.a_bytes is None:
-            changed_lines = [ChangedLine(i, line) for i, line in enumerate(all_lines, 1)]
+            changed_lines = [ChangedLine(i, line) for i, line in enumerate(b_lines, 1)]
         else:
             a_lines = self.__decode_bytes(changed_file.a_bytes, file_encoding)
-            b_lines = self.__decode_bytes(changed_file.b_bytes, file_encoding)
             numbers_of_added_lines = self.__get_numbers_of_changed_lines(a_lines, b_lines)
-            changed_lines = self.__filter_changed_lines(all_lines, numbers_of_added_lines)
-        return LoadedFile(changed_file, file_encoding, all_lines, changed_lines)
-    
-    def __read_changed_file(self, file_path: str, file_encoding: str) -> list[str]:
-        with open(file_path, "r", encoding=file_encoding, errors="replace") as fp:
-            return fp.readlines()
+            changed_lines = self.__filter_changed_lines(b_lines, numbers_of_added_lines)
+        return LoadedFile(changed_file, file_encoding, b_lines, changed_lines)
         
     def __decode_bytes(self, binary: bytes | None, file_encoding: str) -> list[str] | None:
         if binary is None:
             return None
         else:
-            return binary.decode(file_encoding, errors="strict").splitlines()
+            # TODO: verify BOM!
+            return binary.decode(file_encoding, errors="replace").splitlines() 
         
     def __get_numbers_of_changed_lines(self, a_lines: list[str] | None, b_lines: list[str] | None) -> list[int]:
         if a_lines is None and b_lines is None:
