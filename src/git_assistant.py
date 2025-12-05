@@ -51,6 +51,7 @@ class GitAssistant:
             raise Exception("Uncommitted changes detected. Please commit your changes first!")
         
     def __update_branch(self, branch_name: str):
+        # TODO: avoid switching branches for updating
         if branch_name.startswith("origin/"):
             local_branch_name = self.__get_local_branch_for_remote_branch(branch_name)
             if not self.__local_branch_exists(local_branch_name):

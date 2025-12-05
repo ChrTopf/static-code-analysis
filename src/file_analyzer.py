@@ -73,7 +73,7 @@ class FileAnalyzer:
             return None
         else:
             # TODO: verify BOM!
-            return binary.decode(file_encoding, errors="replace").splitlines() 
+            return binary.decode(file_encoding, errors="strict").splitlines()
         
     def __get_numbers_of_changed_lines(self, a_lines: list[str] | None, b_lines: list[str] | None) -> list[int]:
         if a_lines is None and b_lines is None:
