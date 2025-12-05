@@ -4,9 +4,10 @@ from pathspec import PathSpec
 
 
 class ChangedFile:
-    def __init__(self, file_path: str, diff: str | None, check_entire_file: bool):
+    def __init__(self, file_path: str, a_bytes: bytes | None, b_bytes: bytes | None, check_entire_file: bool):
         self.file_path = file_path
-        self.diff: str | None = diff
+        self.a_bytes = a_bytes
+        self.b_bytes = b_bytes
         self.check_entire_file = check_entire_file
 
     def get_file_extension(self) -> str:

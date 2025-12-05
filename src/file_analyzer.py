@@ -1,4 +1,6 @@
+import difflib
 import re
+from typing import Iterator
 
 from analysis_config import AnalysisConfig
 from analysis_exception import AnalysisException
@@ -58,10 +60,12 @@ class FileAnalyzer:
     
     def __load_changed_file(self, changed_file: ChangedFile, file_encoding: str) -> LoadedFile:
         all_lines = self.__read_changed_file(changed_file.file_path, file_encoding)
-        if changed_file.check_entire_file and changed_file.diff is None:
+        if changed_file.check_entire_file or changed_file.a_bytes is None:
             changed_lines = [ChangedLine(i, line) for i, line in enumerate(all_lines, 1)]
         else:
-            numbers_of_added_lines = self.__get_numbers_of_changed_lines(changed_file.diff)
+            a_lines = self.__decode_bytes(changed_file.a_bytes, file_encoding)
+            b_lines = self.__decode_bytes(changed_file.b_bytes, file_encoding)
+            numbers_of_added_lines = self.__get_numbers_of_changed_lines(a_lines, b_lines)
             changed_lines = self.__filter_changed_lines(all_lines, numbers_of_added_lines)
         return LoadedFile(changed_file, file_encoding, all_lines, changed_lines)
     
@@ -69,22 +73,25 @@ class FileAnalyzer:
         with open(file_path, "r", encoding=file_encoding, errors="replace") as fp:
             return fp.readlines()
         
-    def __get_numbers_of_changed_lines(self, diff_text: str | None) -> list[int]:
-        if diff_text is None:
+    def __decode_bytes(self, binary: bytes | None, file_encoding: str) -> list[str] | None:
+        if binary is None:
+            return None
+        else:
+            return binary.decode(file_encoding, errors="strict").splitlines()
+        
+    def __get_numbers_of_changed_lines(self, a_lines: list[str] | None, b_lines: list[str] | None) -> list[int]:
+        if a_lines is None and b_lines is None:
             return []
-        if diff_text.startswith("Binary files") and diff_text.endswith("differ\n"):
-            raise AnalysisException(f"Could not determine diff of binary file. Output from git: '{diff_text}'")
-        if not diff_text.startswith("@@") and diff_text.startswith("Binary files") and diff_text.endswith("differ\n"):
-            raise UnicodeDecodeError("utf-8", diff_text.encode("utf-8"), 0, 2, 
-                                     "Could not properly decode output of 'git diff-tree'. The decoded string does "
-                                     "not start with '@@'.")
-        return self.__parse_diff_to_changed_line_numbers(diff_text)
+        if a_lines is None:
+            return [i for i, line in enumerate(b_lines, 1)]
+        else:
+            diff_lines = difflib.unified_diff(a_lines, b_lines, lineterm='', n=0)
+            return self.__parse_diff_to_changed_line_numbers(diff_lines)
     
-    def __parse_diff_to_changed_line_numbers(self, diff_text: str) -> list[int]:
-        lines = diff_text.split('\n')
+    def __parse_diff_to_changed_line_numbers(self, diff_lines: Iterator[str]) -> list[int]:
         changed_lines = []
         current_line_num = None
-        for line in lines:
+        for line in diff_lines:
             current_line_num = self.__process_next_line(current_line_num, line, changed_lines)
         return changed_lines
     

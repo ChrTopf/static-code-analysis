@@ -18,7 +18,7 @@ class TestButler:
                            numbers_of_changed_lines: list[int] | None, 
                            file_encoding: str = "UTF-8") -> LoadedFile:
         all_lines = self.__read_file(file_path, file_encoding)
-        changed_file = ChangedFile(file_path, None, False)
+        changed_file = ChangedFile(file_path, None, None, False)
         changed_lines = [ChangedLine(i, line) for i, line in enumerate(all_lines, 1) 
                          if numbers_of_changed_lines is None or i in numbers_of_changed_lines]
         return LoadedFile(changed_file, file_encoding, all_lines, changed_lines)

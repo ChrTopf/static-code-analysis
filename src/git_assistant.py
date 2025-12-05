@@ -1,6 +1,6 @@
 import os
 
-from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError, Remote
+from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError, Remote, Blob
 
 from models.changed_file import ChangedFile
 
@@ -84,7 +84,7 @@ class GitAssistant:
     def __get_diff_of_pull_request(self, source_branch: str, target_branch: str):
         commit = self.__get_commit_of_merge_base(source_branch, target_branch)
         source_branch_head = self.repo.heads[source_branch].commit
-        return commit.diff(source_branch_head, create_patch=True, textconv=True)
+        return commit.diff(source_branch_head, create_patch=True)
         
     def __get_changed_files_from_diff(self, diff: DiffIndex[Diff], changed_lines_only: bool) -> list[ChangedFile]:
         changes = []
@@ -96,14 +96,15 @@ class GitAssistant:
     def __parse_diff_to_changed_file(self, diff_metadata: Diff, changed_lines_only: bool) -> ChangedFile:
         file_path = self.repo.working_dir + os.path.sep + diff_metadata.b_path
         check_entire_file = (not changed_lines_only and not diff_metadata.renamed_file) or diff_metadata.new_file
-        diff = self.__decode_diff(diff_metadata.diff)
-        return ChangedFile(file_path, diff, check_entire_file)
+        a_bytes = self.__read_blob(diff_metadata.a_blob)
+        b_bytes = self.__read_blob(diff_metadata.b_blob)
+        return ChangedFile(file_path, a_bytes, b_bytes, check_entire_file)
     
-    def __decode_diff(self, diff: bytes | None) -> str | None:
-        if diff is None:
+    def __read_blob(self, blob: Blob | None) -> str | None:
+        if blob is None:
             return None
         else:
-            return diff.decode(encoding="utf-8", errors="strict")
+            return blob.data_stream.read()
 
     def __try_set_git_repository(self, repo_directory: str) -> bool:
         try:
