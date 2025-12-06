@@ -334,42 +334,7 @@ def parse_config(self, config_object: dict[str, object] | None):
 
 ## Testing Your Check
 
-### Manual Testing
-
-1. Create a test repository with sample files
-2. Add your check to the configuration
-3. Run the analysis and verify results
-
-### Integration Testing
-
-```python
-# Test script example
-from checks.my_new_check import MyNewCheck
-from models.changed_line import ChangedLine
-from models.loaded_file import LoadedFile
-
-def test_my_check():
-    check = MyNewCheck()
-    check.parse_config({'max_length': 50})
-
-    # Create test data
-    test_lines = [
-        ChangedLine(1, "short line"),
-        ChangedLine(2, "this is a very long line that exceeds the limit")
-    ]
-    test_file = LoadedFile("test.py", test_lines, [])
-
-    # Run check
-    issues = check.execute_on_changed_file(test_file)
-
-    # Verify results
-    assert len(issues) == 1
-    assert issues[0].line_number == 2
-
-if __name__ == "__main__":
-    test_my_check()
-    print("Check test passed!")
-```
+See [Testing](getting-started.md#Testing) section in `Getting Started Guide`
 
 ## Common Patterns
 

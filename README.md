@@ -5,7 +5,6 @@ A Python-based tool that analyzes changes between Git branches according to Clea
 | Property      | Value                                                                             |
 | ------------- | --------------------------------------------------------------------------------- |
 | Maintainer    | ChrTopf                                                                           |
-| Sponsor       | TheHolyException                                                                  |
 | Last Modified | 12.11.2025                                                                        |
 | Tags          | `Git`<br/>`Pull Request`<br/>`Clean Code`<br/>`Static Code Analysis`<br/>`Python` |
 
@@ -135,6 +134,7 @@ The application follows clean architecture principles with clear separation of c
 
 - **MVC Pattern**: Clean separation between UI, logic, and data
 - **Plugin Architecture**: Extensible check system
+- **Unit Tests**: Test your checks with unit tests
 - **Configuration Management**: Flexible JSON5-based settings
 - **Git Integration**: Robust branch and diff operations
 
@@ -161,14 +161,14 @@ See the [Implementing New Checks](docs/implementing-checks.md) guide for detaile
 ## License
 
 -> See LICENSE
-This project is maintained by ChrTopf and sponsored by TheHolyException.
 
 ---
 
 ## Version History
 
-| Date/Version | Changes                                                                                                                                                                                                                                                                                                                |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 19.10.2025   | Initial version released                                                                                                                                                                                                                                                                                               |
-| 20.10.2025   | - Fixed analysis config parsing issue<br/>- Fixed file encoding issues<br/>- Fixed empty diff issue<br/>- Added automatic checkout feature for remote branches                                                                                                                                                         |
-| 12.11.2025   | - Added feature for analyzing entire repository by selecting same source and target branch<br/>- fixed multiple bugs and errors when checking out, pulling and comparing remote branches<br/>- fixed errors with diff encodings<br/>- fixed line numbering for changed lines<br/>- fixed issues with broken dark style |
+| Date/Version | Changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 19.10.2025   | Initial version released                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 20.10.2025   | - Fixed analysis config parsing issue<br/>- Fixed file encoding issues<br/>- Fixed empty diff issue<br/>- Added automatic checkout feature for remote branches                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 12.11.2025   | - Added feature for analyzing entire repository by selecting same source and target branch<br/>- fixed multiple bugs and errors when checking out, pulling and comparing remote branches<br/>- fixed errors with diff encodings<br/>- fixed line numbering for changed lines<br/>- fixed issues with broken dark style                                                                                                                                                                                                                                         |
+| 06.12.2025   | - added unit tests for checks<br/>- added C# method length check<br/>- removed dependency on textconv for reading changes of diff<br/>- added feature for reading changed files directly from git object database as binary files<br/>- fixed issues with the correct detection of wrong file encodings<br/>- removed feature that automatically checks out branches<br/>- fixed errors with missing remote for branches that were checked out automatically<br/>- added feature for fetching changes in the background without modifying repository file tree |
