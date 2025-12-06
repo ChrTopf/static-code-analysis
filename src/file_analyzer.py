@@ -1,6 +1,7 @@
+import codecs
 import difflib
 import re
-from typing import Iterator
+from typing import Iterator, Literal
 
 from analysis_config import AnalysisConfig
 from analysis_exception import AnalysisException
@@ -19,6 +20,13 @@ class FileAnalyzer:
         self.check_factory: CheckFactory = CheckFactory(analysis_config)
         self.repository_directory = repository_directory
         self.hunk_pattern = r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@'
+        self.bom: dict[str, Literal] = {
+            'utf-8-sig': codecs.BOM_UTF8,
+            'utf-16-le': codecs.BOM_UTF16_LE,
+            'utf-16-be': codecs.BOM_UTF16_BE,
+            'utf-32-le': codecs.BOM_UTF32_LE,
+            'utf-32-be': codecs.BOM_UTF32_BE
+        }
     
     def analyze_changed_file(self, changed_file: ChangedFile) -> FileAnalysisResult:
         self.__check_file_exclusion(changed_file)
@@ -57,8 +65,11 @@ class FileAnalyzer:
         except UnicodeDecodeError:
             raise AnalysisException(f"The file is not saved with the correct encoding. The expected encoding is "
                                     f"'{file_encoding}'.")
+        except LookupError:
+            raise AnalysisException(f"The file encoding '{file_encoding}' is not supported.")
     
     def __load_changed_file(self, changed_file: ChangedFile, file_encoding: str) -> LoadedFile:
+        self.__verify_bom(changed_file.b_bytes, file_encoding)
         b_lines = self.__decode_bytes(changed_file.b_bytes, file_encoding)
         if changed_file.check_entire_file or changed_file.a_bytes is None:
             changed_lines = [ChangedLine(i, line) for i, line in enumerate(b_lines, 1)]
@@ -72,8 +83,16 @@ class FileAnalyzer:
         if binary is None:
             return None
         else:
-            # TODO: verify BOM!
             return binary.decode(file_encoding, errors="strict").splitlines()
+        
+    def __verify_bom(self, binary: bytes, file_encoding: str) -> None:
+        if binary is None:
+            return None
+        canonical_name = codecs.lookup(file_encoding).name
+        for codec, bom in self.bom.items():
+            if codecs.lookup(codec).name == canonical_name and not binary.startswith(bom):
+                raise UnicodeDecodeError
+        return None
         
     def __get_numbers_of_changed_lines(self, a_lines: list[str] | None, b_lines: list[str] | None) -> list[int]:
         if a_lines is None and b_lines is None:
