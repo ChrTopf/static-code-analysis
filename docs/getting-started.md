@@ -149,11 +149,33 @@ The application follows a clean architecture with separation of concerns:
 
 ### Testing
 
-Currently, the project lacks automated tests. Future development should include:
+The codebase features unit tests for checks. The source code for tests must be placed in the `test` directory and sample files which are used for testing the checks must be placed in `samples` directory. 
 
-- Unit tests for check implementations
-- Integration tests for the analysis pipeline
-- GUI tests for user interactions
+The following code snippet shows an example of a unit test:
+
+```python
+import unittest
+
+from checks.csharp_method_length import CSharpMethodLength
+from util.test_butler import TestButler
+from util.test_config import TestConfig
+
+class TestStringMethods(unittest.TestCase):
+
+    def test_csharp_method_length(self):
+        sample_file = "samples/CoffeeShop.cs"
+        expected_result = [48]
+        check_config = {"max_lines": 20}
+        check = CSharpMethodLength()
+
+        butler = TestButler(self)
+        butler.execute_test(TestConfig(sample_file, expected_result, check_config, check))
+
+if __name__ == '__main__':
+    unittest.main()
+```
+
+The test case is called `test_csharp_method_length` and uses the `TestButler` to execute on a sample file called `CoffeeShop.cs`. The expected result is a list of line numbers or a list of `LineAnalysisIssue` instances. The check config must be a dictionary and it must contain the same information which usually gets parsed from `analysis_config.json5`. Lastly, the check is instanciated by calling its constructor and tested by creating a `TestButler` and telling it to run the test with the specified config.
 
 ### Error Handling
 

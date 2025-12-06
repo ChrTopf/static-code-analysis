@@ -49,7 +49,8 @@
     "*.ico",
     "*.svg",
     "*.gif",
-    "*.jar"
+    "*.jar",
+    "*.sln"
   ],
   /* Explicitly define the file encoding for specific files or file types. GitHub flavored wildcards are possible here.
   (UTF-8 is chosen as a default encoding for every file) */
@@ -63,7 +64,10 @@
     "*.js": "utf-8",
     "*.ts": "utf-8",
     "*.html": "utf-8",
-    "*.css": "utf-8"
+    "*.css": "utf-8",
+    "*.psm1": "utf-16le",
+    "*.ps1": "utf-16le",
+    "*.lnx": "utf-16le"
   },
   /* The standard checks to be performed for every file in the diff. */
   "standard_checks": {
@@ -79,7 +83,8 @@
     },
     "*.cs": {
       "line_length": {max_line_length: 120},
-      "trailing_whitespace": {max_trailing_whitespaces: 20}
+      "trailing_whitespace": {max_trailing_whitespaces: 20},
+      "csharp_method_length": {"max_lines": 20}
     },
     "*.java": {
       "line_length": {max_line_length: 120},

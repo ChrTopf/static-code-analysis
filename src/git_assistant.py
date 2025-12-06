@@ -1,6 +1,6 @@
 import os
 
-from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError, Remote
+from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError, Blob, Commit
 
 from models.changed_file import ChangedFile
 
@@ -32,14 +32,36 @@ class GitAssistant:
             -> list[ChangedFile]:
         if self.repo is None:
             return []
-        self.__check_for_uncommitted_changes()
-        self.__update_branch(target_branch)
-        self.__update_branch(source_branch)
-        local_source_branch = self.__get_local_branch_for_remote_branch(source_branch)
-        local_target_branch = self.__get_local_branch_for_remote_branch(target_branch)
-        diff = self.__get_diff_of_pull_request(local_source_branch, local_target_branch)
+        target_branch = self.__update_branch(target_branch)
+        source_branch = self.__update_branch(source_branch)
+        diff = self.__get_diff_of_pull_request(source_branch, target_branch)
         return self.__get_changed_files_from_diff(diff, changed_lines_only)
         
+    def __update_branch(self, branch_name: str) -> str:
+        if branch_name.startswith("origin/"):
+            local_branch_name = branch_name.replace("origin/", "")
+            if self.__local_branch_exists(local_branch_name):
+                self.__update_local_branch(local_branch_name)
+                return local_branch_name
+            else:
+                # fetch remote branch and create a remote tracking branch (does not create a local branch!)
+                self.repo.remotes.origin.fetch(local_branch_name)
+                return branch_name
+        else:
+            self.__update_local_branch(branch_name)
+            return branch_name
+        
+    def __local_branch_exists(self, branch_name: str) -> bool:
+        return branch_name in [branch.name for branch in self.repo.branches]
+    
+    def __update_local_branch(self, local_branch_name: str):
+        if self.repo.active_branch.name == local_branch_name:
+            self.__check_for_uncommitted_changes()
+            self.repo.remotes.origin.pull()
+        else:
+            ref_spec: str = f'{local_branch_name}:{local_branch_name}'
+            self.repo.remotes.origin.fetch(ref_spec)
+
     def __check_for_uncommitted_changes(self):
         if self.repo.is_dirty():
             if self.repo.untracked_files:
@@ -50,41 +72,20 @@ class GitAssistant:
                 raise Exception("Unstaged changes detected. Please commit your changes first!")
             raise Exception("Uncommitted changes detected. Please commit your changes first!")
         
-    def __update_branch(self, branch_name: str):
-        if branch_name.startswith("origin/"):
-            local_branch_name = self.__get_local_branch_for_remote_branch(branch_name)
-            if not self.__local_branch_exists(local_branch_name):
-                self.__checkout_remote_branch(branch_name, local_branch_name)
-            else:
-                self.repo.git.checkout(local_branch_name)
-        else:
-            self.repo.git.checkout(branch_name)
-        self.__pull_current_branch()
-
-    def __get_local_branch_for_remote_branch(self, branch_name: str) -> str:
-        return branch_name.replace("origin/", "")
-        
-    def __local_branch_exists(self, branch_name: str) -> bool:
-        return branch_name in [branch.name for branch in self.repo.branches]
-
-    def __checkout_remote_branch(self, remote_branch_name: str, local_branch_name: str):
-        # Create new local branch tracking the remote branch
-        head = self.repo.create_head(local_branch_name, remote_branch_name)
-        head.checkout()
-        
-    def __pull_current_branch(self):
-        origin: Remote = self.repo.remotes.origin
-        current_branch = self.repo.active_branch.name
-        origin.pull(current_branch)
-        
     def __get_commit_of_merge_base(self, source_branch: str, target_branch: str):
         merge_base = self.repo.merge_base(source_branch, target_branch)
         return merge_base[0] if merge_base else None
     
     def __get_diff_of_pull_request(self, source_branch: str, target_branch: str):
-        commit = self.__get_commit_of_merge_base(source_branch, target_branch)
-        source_branch_head = self.repo.heads[source_branch].commit
-        return commit.diff(source_branch_head, create_patch=True, textconv=True)
+        merge_base_commit = self.__get_commit_of_merge_base(source_branch, target_branch)
+        latest_commit = self.__get_latest_commit(source_branch)
+        return merge_base_commit.diff(latest_commit, create_patch=True)
+
+    def __get_latest_commit(self, branch_name: str) -> Commit:
+        if branch_name.startswith("origin/"):
+            return self.repo.remotes.origin.refs[branch_name.replace("origin/", "")].commit
+        else:
+            return self.repo.heads[branch_name].commit
         
     def __get_changed_files_from_diff(self, diff: DiffIndex[Diff], changed_lines_only: bool) -> list[ChangedFile]:
         changes = []
@@ -96,14 +97,15 @@ class GitAssistant:
     def __parse_diff_to_changed_file(self, diff_metadata: Diff, changed_lines_only: bool) -> ChangedFile:
         file_path = self.repo.working_dir + os.path.sep + diff_metadata.b_path
         check_entire_file = (not changed_lines_only and not diff_metadata.renamed_file) or diff_metadata.new_file
-        diff = self.__decode_diff(diff_metadata.diff)
-        return ChangedFile(file_path, diff, check_entire_file)
+        a_bytes = self.__read_blob(diff_metadata.a_blob)
+        b_bytes = self.__read_blob(diff_metadata.b_blob)
+        return ChangedFile(file_path, a_bytes, b_bytes, check_entire_file)
     
-    def __decode_diff(self, diff: bytes | None) -> str | None:
-        if diff is None:
+    def __read_blob(self, blob: Blob | None) -> str | None:
+        if blob is None:
             return None
         else:
-            return diff.decode(encoding="utf-8", errors="strict")
+            return blob.data_stream.read()
 
     def __try_set_git_repository(self, repo_directory: str) -> bool:
         try:
