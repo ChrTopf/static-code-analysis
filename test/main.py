@@ -2,6 +2,7 @@ import unittest
 
 from checks.csharp_method_length import CSharpMethodLength
 from util.test_butler import TestButler
+from util.test_config import TestConfig
 
 
 class TestStringMethods(unittest.TestCase):
@@ -13,10 +14,7 @@ class TestStringMethods(unittest.TestCase):
         check = CSharpMethodLength()
 
         butler = TestButler(self)
-        diff = butler.generate_new_file_diff(sample_file)
-        check.parse_config(check_config)
-        actual_result = check.execute_on_changed_file(diff) 
-        butler.verify_check_results(expected_result, actual_result)
+        butler.execute_test(TestConfig(sample_file, expected_result, check_config, check))
 
 if __name__ == '__main__':
     unittest.main()

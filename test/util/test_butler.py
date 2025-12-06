@@ -4,12 +4,19 @@ from models.changed_file import ChangedFile
 from models.changed_line import ChangedLine
 from models.line_analysis_issue import LineAnalysisIssue
 from models.loaded_file import LoadedFile
+from util.test_config import TestConfig
 
 
 class TestButler:
     
     def __init__(self, test_case: TestCase) -> None:
         self.test_case: TestCase = test_case
+        
+    def execute_test(self, test_configuration: TestConfig) -> None:
+        diff = self.generate_new_file_diff(test_configuration.sample_file_path)
+        test_configuration.check.parse_config(test_configuration.config_object)
+        actual_result = test_configuration.check.execute_on_changed_file(diff)
+        self.verify_check_results(test_configuration.expected_result, actual_result)
 
     def generate_new_file_diff(self, file_path: str, file_encoding: str = "UTF-8") -> LoadedFile:
         return self.generate_file_diff(file_path, numbers_of_changed_lines=None, file_encoding=file_encoding)

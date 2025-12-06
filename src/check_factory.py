@@ -1,5 +1,6 @@
 from analysis_config import AnalysisConfig
 from checks.check import Check
+from checks.csharp_method_length import CSharpMethodLength
 from checks.line_length import LineLength
 from checks.region_newline import RegionNewline
 from checks.replacement_characters import ReplacementCharacters
@@ -18,6 +19,7 @@ class CheckFactory:
             "todo": TODO,
             "trailing_whitespace": TrailingWhitespace,
             "region_newline": RegionNewline,
+            "csharp_method_length": CSharpMethodLength,
         }
         
     def generate_checks(self, configured_checks: dict[str, object]) -> list[Check]:
