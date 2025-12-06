@@ -91,7 +91,8 @@ class FileAnalyzer:
         canonical_name = codecs.lookup(file_encoding).name
         for codec, bom in self.bom.items():
             if codecs.lookup(codec).name == canonical_name and not binary.startswith(bom):
-                raise UnicodeDecodeError
+                raise AnalysisException(f"The file should be encoded in '{file_encoding}' but does not feature a valid "
+                                        f"BOM. Please make sure that the file is saved with the correct encoding!")
         return None
         
     def __get_numbers_of_changed_lines(self, a_lines: list[str] | None, b_lines: list[str] | None) -> list[int]:
