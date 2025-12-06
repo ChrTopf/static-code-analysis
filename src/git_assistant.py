@@ -1,6 +1,6 @@
 import os
 
-from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError, Blob
+from git import DiffIndex, Diff, Repo, InvalidGitRepositoryError, Blob, Commit
 
 from models.changed_file import ChangedFile
 
@@ -77,9 +77,15 @@ class GitAssistant:
         return merge_base[0] if merge_base else None
     
     def __get_diff_of_pull_request(self, source_branch: str, target_branch: str):
-        commit = self.__get_commit_of_merge_base(source_branch, target_branch)
-        source_branch_head = self.repo.heads[source_branch].commit
-        return commit.diff(source_branch_head, create_patch=True)
+        merge_base_commit = self.__get_commit_of_merge_base(source_branch, target_branch)
+        latest_commit = self.__get_latest_commit(source_branch)
+        return merge_base_commit.diff(latest_commit, create_patch=True)
+
+    def __get_latest_commit(self, branch_name: str) -> Commit:
+        if branch_name.startswith("origin/"):
+            return self.repo.remotes.origin.refs[branch_name.replace("origin/", "")].commit
+        else:
+            return self.repo.heads[branch_name].commit
         
     def __get_changed_files_from_diff(self, diff: DiffIndex[Diff], changed_lines_only: bool) -> list[ChangedFile]:
         changes = []
